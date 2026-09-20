@@ -80,8 +80,8 @@ const PROJECT_SLUGS_QUERY = /* GraphQL */ `
 `;
 
 const PROJECT_BY_SLUG_QUERY = /* GraphQL */ `
-  query ProjectBySlug($slug: String!) {
-    portfolio(where: { slug: $slug }) {
+  query ProjectBySlug($slug: String!, $stage: Stage = PUBLISHED) {
+    portfolio(where: { slug: $slug }, stage: $stage) {
       ${SUMMARY_FIELDS}
       endDate
       highlights
@@ -260,20 +260,22 @@ export async function getProjectSlugs(): Promise<string[]> {
  * Fetch one project by slug, or `null` when it does not exist.
  *
  * Tagged `project:<slug>` so a single publish busts only this entry.
+ * Supports querying DRAFT stage for previewing unpublished projects.
  *
  * @example
  * const project = await getProjectBySlug('ekartar');
  * if (!project) notFound();
  */
 export async function getProjectBySlug(
-  slug: string
+  slug: string,
+  stage: 'PUBLISHED' | 'DRAFT' = 'PUBLISHED'
 ): Promise<ProjectDetail | null> {
   const data = await hygraphFetch<{ portfolio: HygraphPortfolio | null }>(
     PROJECT_BY_SLUG_QUERY,
-    { slug },
+    { slug, stage },
     {
       tags: [projectTags.all, projectTags.bySlug(slug)],
-      revalidate: REVALIDATE_SECONDS,
+      revalidate: stage === 'DRAFT' ? 0 : REVALIDATE_SECONDS,
     }
   );
 

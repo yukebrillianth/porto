@@ -30,7 +30,10 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     HYGRAPH_ENDPOINT: process.env.HYGRAPH_ENDPOINT,
-    HYGRAPH_TOKEN: process.env.HYGRAPH_TOKEN,
+    HYGRAPH_TOKEN:
+      process.env.HYGRAPH_TOKEN ||
+      process.env.HYGRAPH_PREVIEW_TOKEN ||
+      process.env.NEXT_PREVIEW_TOKEN,
     HYGRAPH_WEBHOOK_SECRET: process.env.HYGRAPH_WEBHOOK_SECRET,
     GHOST_URL: process.env.GHOST_URL,
     GHOST_CONTENT_KEY: process.env.GHOST_CONTENT_KEY,
