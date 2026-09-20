@@ -7,80 +7,107 @@ import {
   motion,
   useReducedMotion,
   useScroll,
+  useSpring,
   useTransform,
 } from 'motion/react';
 
 import { cn } from '@/lib/cn';
 
-/** How far the sheet overlaps the band above it, in px, per breakpoint. */
+/**
+ * How far the sheet pulls up over the band above it.
+ *
+ * This is half of what kills the gap: the sheet sits in flow overlapping the
+ * previous band, so its top edge is always over real pixels rather than over
+ * the page canvas.
+ */
 const LIP_OVERLAP = '-mt-[24px] md:-mt-[48px]';
 
 /**
- * Height of the static safety fill at the bottom of the flow box. It paints
- * the band's own colour behind the moving sheet, so an upward translate can
- * never reveal the page canvas at the seam with the next section. Keep it
- * comfortably larger than any `offset` passed in.
+ * A static block of the sheet's own colour pinned to the bottom of the flow
+ * box, painted *behind* the moving sheet.
+ *
+ * This is the other half. The sheet translates upward, which would otherwise
+ * expose the page canvas in the strip it vacates at the bottom. The fill
+ * occupies that strip in the sheet's own colour, so the vacated area reads as
+ * more sheet. It must stay taller than `RISE`.
  */
-const SAFETY_FILL = 'h-[120px]';
+const SAFETY_FILL = 'h-[160px]';
+
+/** Sheet travel in px. Small on purpose - this is a seam, not a showpiece. */
+const RISE = 56;
 
 type ParallaxSectionProps = {
   children: ReactNode;
-  /** Vertical travel in px across the scroll range. Negative moves up. */
+  /** @deprecated Ignored. Travel is fixed at `RISE` so seams stay uniform. */
   offset?: number;
   /**
-   * Renders the band as a sheet sliding over the section above it: a rounded
-   * top lip, a soft top shadow and a small upward overlap. Pass the wrapped
-   * band's own tone so the safety fill matches its background.
+   * Renders the band as a sheet sliding up over the section above it: a
+   * rounded top lip, a soft top shadow, and the overlap that closes the seam.
+   * Pass the band's own tone so the safety fill matches its background.
    */
   sheet?: 'light' | 'dark';
   className?: string;
 };
 
 /**
- * Wraps a section in a scroll-driven parallax.
+ * Wraps a section as a sheet that slides up over the band above it.
  *
- * The band is tracked from the moment its top enters the viewport to the
- * moment its bottom leaves it, and translated by `offset` across that range.
+ * The incoming sheet starts `RISE` px low and settles flush as its top edge
+ * reaches the top of the viewport, so it reads as paper sliding over the
+ * section behind rather than a panel floating in a gap.
  *
- * With `sheet` set, the band also reads as a physical sheet sliding up over
- * the section above it: it overlaps that section slightly, its top corners are
- * rounded into a lip, and a soft shadow lifts it off the band behind. The
- * alternating dark / light rhythm is untouched - only the seam changes.
+ * ## Why this is a transform and not `position: sticky`
  *
- * Layering is left to DOM order on purpose. The wrapper sits at `z-0`, so each
- * band paints over the one before it (the lip) while the band after it paints
- * over this one (no overshoot). Raising it further would invert that.
+ * A sticky pile-up - each band pinned while the next covers it - is the usual
+ * way to build this, and it does not work on this page. It assumes every
+ * layer fits in one viewport; every band here (Hero, About, the dark
+ * Education/Social/Portfolio band, Latest Posts) is much taller than the
+ * screen. Pinned at `top: 0` a tall band freezes while its lower half is
+ * still below the fold and the next band then buries it, so that content
+ * becomes unreachable. Pinned at `bottom: 0` the bands never unpin, so all
+ * four collect at the bottom and the last one paints over the rest. Both were
+ * tried; both broke the page. Making sticky work would mean capping every
+ * band at `100vh`, which contradicts the layout in docs/design-brief.md.
  *
- * A no-op for `prefers-reduced-motion`: the sheet treatment stays, the
- * scroll-linked translate does not.
+ * ## Cost
+ *
+ * `scrollYProgress` is a motion value: it drives `transform` directly without
+ * a React re-render, there is no scroll listener and no rAF loop of our own,
+ * and `transform` is compositor-only, so no layout or paint is triggered.
+ * The spring is what keeps it from feeling mechanically welded to the wheel.
+ *
+ * `prefers-reduced-motion` pins the travel to 0 - the sheet, lip and shadow
+ * stay, the movement does not.
  *
  * @example
- * <ParallaxSection offset={-32} sheet="light">
+ * <ParallaxSection sheet="light">
  *   <Section tone="light">...</Section>
  * </ParallaxSection>
  */
 export function ParallaxSection({
   children,
-  offset = -32,
   sheet,
   className,
 }: ParallaxSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
+  /**
+   * Tracked from the sheet's top entering the viewport to it reaching the
+   * top. Tracking further (`end start`) keeps moving the sheet after it has
+   * already covered the screen, which drags the lip up across the band above.
+   */
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'start start'],
   });
 
-  /**
-   * The sheet rises into place: it starts `offset` px low and settles at 0 by
-   * the time its top reaches the top of the viewport. Tracking all the way to
-   * `end start` kept moving it after it had covered the viewport, which
-   * dragged the lip up across the section above.
-   */
-  const rise = Math.abs(offset);
-  const travel = useTransform(scrollYProgress, [0, 1], [rise, 0]);
+  const travel = useTransform(scrollYProgress, [0, 1], [RISE, 0]);
+  const y = useSpring(travel, {
+    stiffness: 260,
+    damping: 40,
+    restDelta: 0.5,
+  });
 
   return (
     <div
@@ -99,10 +126,10 @@ export function ParallaxSection({
       )}
 
       <motion.div
-        style={{ y: shouldReduceMotion ? 0 : travel }}
+        style={{ y: shouldReduceMotion ? 0 : y }}
         className={cn(
           'relative',
-          sheet && 'overflow-hidden rounded-t-[32px]',
+          sheet && 'overflow-hidden rounded-t-2xl lg:rounded-t-4xl',
           sheet === 'light' &&
             'shadow-[0_-16px_48px_-16px_rgba(255,255,255,0.14)]',
           sheet === 'dark' && 'shadow-[0_-16px_48px_-16px_rgba(0,0,0,0.55)]'

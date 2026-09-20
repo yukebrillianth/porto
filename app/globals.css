@@ -85,6 +85,22 @@
     background-color: var(--color-primary);
     color: #fff;
   }
+
+  /*
+   * Tailwind v4's Preflight sets buttons to `cursor: default` to match the
+   * raw browser default. On a site this interactive it reads as broken - the
+   * filter chips, tabs and CTAs all look unclickable. Restore the pointer on
+   * anything actually clickable, but never on a disabled control, where the
+   * arrow is the correct affordance.
+   */
+  button:not(:disabled),
+  [role='button']:not(:disabled),
+  [role='tab']:not(:disabled),
+  label[for],
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 /* ==========================================================================

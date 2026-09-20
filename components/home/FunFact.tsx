@@ -86,7 +86,13 @@ export function FunFact() {
               <SectionTitle className="mb-[92px]">About Me.</SectionTitle>
             </motion.div>
 
-            <ContentBlock className="mb-[100px]">
+            {/*
+              The block is centred in the section, and the 80px indent then
+              pushes the heading and paragraph right of the eyebrow. Without a
+              width cap the block spans the full measure and the indent reads
+              as off-centre rather than as a hanging indent.
+            */}
+            <ContentBlock className="mb-[100px] w-full max-w-[720px] text-center md:text-left">
               <motion.div variants={fadeUp}>
                 <Eyebrow>FUN FACT</Eyebrow>
               </motion.div>
@@ -106,7 +112,7 @@ export function FunFact() {
 
               <motion.p
                 variants={fadeUp}
-                className="text-muted-light mt-[40px] max-w-[720px] text-[18px] leading-[26px] font-normal md:mt-[40px] md:ml-[80px]"
+                className="text-muted-light mx-auto mt-[40px] max-w-[560px] text-[18px] leading-[26px] font-normal md:mx-0 md:mt-[40px] md:ml-[80px]"
               >
                 I started in full-stack web development, building interfaces,
                 APIs and the databases underneath them. Curiosity about robotics

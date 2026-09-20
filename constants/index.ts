@@ -80,7 +80,7 @@ export const socials = [
 
 export type Social = (typeof socials)[number];
 
-export const email = 'yukebrillianth@gmail.com';
+export const email = 'me@yukebrillianth.my.id';
 
 /**
  * The tech row in the fun-fact section. These are the six the original site

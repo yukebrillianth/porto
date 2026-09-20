@@ -1,16 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-
 import Image from 'next/image';
-
-import { zodResolver } from '@hookform/resolvers/zod';
 
 import { Footer, Navbar } from '@/components/layouts';
 import {
-  Button,
+  ButtonLink,
+  ContentBlock,
   Eyebrow,
   GlowOrb,
   Section,
@@ -18,205 +13,123 @@ import {
   SectionTitle,
 } from '@/components/ui';
 import { email, socials } from '@/constants';
-import { getErrorMessage, getValidationErrors } from '@/lib/http-error';
-import { contactSchema, type ContactRequest } from '@/schemas/contact';
 
-const fieldClasses =
-  'focus-visible:ring-primary w-full rounded-[12px] border border-white/15 bg-surface px-[20px] py-3.5 text-base font-medium text-white placeholder:text-white/35 focus-visible:ring-2 focus-visible:outline-none';
+/** The two channels Yuke actually answers on, promoted to primary CTAs. */
+const INSTAGRAM = socials.find(
+  (social) => social.platform === 'Instagram'
+)?.href;
 
+/** The rest of the profiles, shown as secondary cards below the CTAs. */
+const OTHER_SOCIALS = socials.filter(
+  (social) => social.platform !== 'Instagram'
+);
+
+/**
+ * Contact.
+ *
+ * There is no form here on purpose. The previous one had no backend - it
+ * validated three fields, then handed the message to `window.location.href =
+ * mailto:`, so it was an email link wearing a form costume: it asked for the
+ * visitor's name and address that their mail client already knows, and it
+ * could silently fail if no mail handler was registered. Two direct channels
+ * are faster for the visitor and honest about where the message ends up.
+ *
+ * That also drops react-hook-form, zod resolver and toast from this route.
+ */
 export default function ContactContainer() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [globalError, setGlobalError] = useState('');
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors },
-  } = useForm<ContactRequest>({ resolver: zodResolver(contactSchema) });
-
-  const onSubmit = async (data: ContactRequest) => {
-    setIsLoading(true);
-    setGlobalError('');
-
-    try {
-      // ---------------------------------------------------------------------
-      // TODO: there is no backend for this form yet.
-      //
-      // Until a mail route exists (e.g. app/api/contact/route.ts + Resend),
-      // this hands the message off to the visitor's own mail client so nothing
-      // is silently dropped. Replace this block with a real POST when the
-      // endpoint lands - the catch below is already shaped for it.
-      // ---------------------------------------------------------------------
-      const subject = `Portfolio contact - ${data.name}`;
-      const body = `${data.message}\n\n-\n${data.name}\n${data.email}`;
-      const mailto = `mailto:${email}?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
-
-      window.location.href = mailto;
-
-      toast.success('Opening your mail app to send the message.');
-      reset();
-    } catch (error) {
-      const msg = getErrorMessage(error);
-      setGlobalError(msg);
-      toast.error(msg);
-
-      const validationErrors = getValidationErrors(error);
-      if (validationErrors) {
-        Object.entries(validationErrors).forEach(([field, message]) => {
-          setError(field as keyof ContactRequest, {
-            type: 'server',
-            message,
-          });
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <>
-      <Section tone="dark">
+      <Section tone="dark" className="min-h-screen">
         <Navbar />
 
-        <GlowOrb className="bottom-0 left-[15%]" />
+        {/*
+          The orb sits in the upper half on purpose. Parked at `bottom-0` it
+          rendered behind the footer, which clipped the bloom into a hard edge
+          instead of letting it fade out.
+        */}
+        <GlowOrb className="top-[22%] left-[10%]" />
 
+        {/*
+          Design-brief Sec. 5.0, the two-level rule: the *block* is centred in
+          the page (the default `SectionInner` column), and the eyebrow is
+          left-aligned inside that block rather than centred with it. Setting
+          `items-start` on the column instead would flush the whole thing to
+          the page gutter, which is the thing Sec. 5.0 calls out as wrong.
+        */}
         <SectionInner>
-          <Eyebrow>CONTACT</Eyebrow>
+          <ContentBlock className="w-full max-w-[48rem]">
+            <Eyebrow>CONTACT</Eyebrow>
 
-          <div className="content-indent mt-4">
-            <SectionTitle className="text-white">Let&apos;s Talk.</SectionTitle>
+            <div className="content-indent mt-4 w-full">
+              <SectionTitle className="text-white">
+                Let&apos;s Talk.
+              </SectionTitle>
 
-            <p className="text-muted-dark mt-6 max-w-[41rem] text-[18px] leading-[24px]">
-              I&apos;m always happy to talk about robotics, software systems,
-              distributed systems, AI and product engineering - whether
-              that&apos;s a project you&apos;re building, a problem that
-              won&apos;t behave, or a team looking for an engineer who works
-              across the stack. Send me a message and I&apos;ll get back to you.
-            </p>
+              <p className="text-muted-dark mt-6 max-w-[41rem] text-[18px] leading-[24px]">
+                I&apos;m always happy to talk about robotics, software systems,
+                distributed systems, AI and product engineering - whether
+                that&apos;s a project you&apos;re building, a problem that
+                won&apos;t behave, or a team looking for an engineer who works
+                across the stack. Email is the surest way to reach me; Instagram
+                works well for anything shorter.
+              </p>
 
-            <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {socials.map((social) => (
-                <div
-                  key={social.platform}
-                  className="bg-surface relative flex items-center gap-4 rounded-[12px] px-7 py-5"
-                >
-                  <Image
-                    src={social.icon}
-                    alt=""
-                    aria-hidden="true"
-                    width={16}
-                    height={17}
-                    className="h-[17px] w-[16px] shrink-0 brightness-0 invert"
-                  />
-                  <div>
-                    <p className="text-base font-semibold text-white">
-                      {social.platform}
-                    </p>
-                    <p className="text-muted-dark text-sm font-medium">
-                      {social.username}
-                    </p>
-                  </div>
-                  <a
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="focus-visible:ring-primary rounded-[12px] transition after:absolute after:inset-0 hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none"
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                <ButtonLink href={`mailto:${email}`}>Email Me</ButtonLink>
+
+                {INSTAGRAM && (
+                  <ButtonLink href={INSTAGRAM} variant="ghost">
+                    Message on Instagram
+                  </ButtonLink>
+                )}
+              </div>
+
+              <p className="text-muted-dark mt-6 text-[14px] font-medium">
+                or copy it directly:{' '}
+                <span className="font-semibold text-white">{email}</span>
+              </p>
+
+              <h2 className="mt-16 text-[24px] leading-[28px] font-semibold text-white">
+                Elsewhere.
+              </h2>
+
+              <div className="mt-6 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {OTHER_SOCIALS.map((social) => (
+                  <div
+                    key={social.platform}
+                    className="bg-surface relative flex items-center gap-4 rounded-[12px] px-7 py-5"
                   >
-                    <span className="sr-only">
-                      {social.platform} - {social.username}
-                    </span>
-                  </a>
-                </div>
-              ))}
-
-              <div className="bg-surface relative flex items-center gap-4 rounded-[12px] px-7 py-5">
-                <div>
-                  <p className="text-base font-semibold text-white">Email</p>
-                  <p className="text-muted-dark text-sm font-medium">{email}</p>
-                </div>
-                <a
-                  href={`mailto:${email}`}
-                  className="focus-visible:ring-primary rounded-[12px] transition after:absolute after:inset-0 hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none"
-                >
-                  <span className="sr-only">Email {email}</span>
-                </a>
+                    <Image
+                      src={social.icon}
+                      alt=""
+                      aria-hidden="true"
+                      width={16}
+                      height={17}
+                      className="h-[17px] w-[16px] shrink-0 brightness-0 invert"
+                    />
+                    <div>
+                      <p className="text-base font-semibold text-white">
+                        {social.platform}
+                      </p>
+                      <p className="text-muted-dark text-sm font-medium">
+                        {social.username}
+                      </p>
+                    </div>
+                    <a
+                      href={social.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="focus-visible:ring-primary rounded-[12px] transition after:absolute after:inset-0 hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                      <span className="sr-only">
+                        {social.platform} - {social.username}
+                      </span>
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
-
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="mt-16 flex max-w-xl flex-col gap-5"
-            >
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="name" className="text-sm font-semibold">
-                  Name
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  placeholder="Your name"
-                  className={fieldClasses}
-                  {...register('name')}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-500">{errors.name.message}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="email" className="text-sm font-semibold">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  className={fieldClasses}
-                  {...register('email')}
-                />
-                {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="message" className="text-sm font-semibold">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  rows={6}
-                  placeholder="What are you building?"
-                  className={fieldClasses}
-                  {...register('message')}
-                />
-                {errors.message && (
-                  <p className="text-xs text-red-500">
-                    {errors.message.message}
-                  </p>
-                )}
-              </div>
-
-              {globalError && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-center">
-                  <p className="text-sm font-medium text-red-500">
-                    {globalError}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-2">
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Sending…' : 'Send Message'}
-                </Button>
-              </div>
-            </form>
-          </div>
+          </ContentBlock>
         </SectionInner>
       </Section>
 

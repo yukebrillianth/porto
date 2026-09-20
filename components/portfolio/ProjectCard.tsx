@@ -13,15 +13,20 @@ type ProjectCardProps = {
 /**
  * Cover tile for the portfolio grid. Hovering (or focusing) reveals a dark
  * scrim with the project title centred over the whole tile.
+ *
+ * The tile is a fixed 315x190 box, as in the 2022 original. It only shrinks
+ * below 315px on narrow phones, which is what `max-w-full` covers - it never
+ * stretches to fill its grid column, because a full-width tile at the desktop
+ * measure reads as a huge sparse banner rather than a card.
  */
 export function ProjectCard({ project, priority = false }: ProjectCardProps) {
   return (
-    <article className="group focus-within:ring-primary focus-within:ring-offset-dark relative h-[190px] w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-offset-2">
+    <article className="group focus-within:ring-primary focus-within:ring-offset-dark relative h-[190px] w-[315px] max-w-full overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-offset-2">
       <Image
         src={project.coverUrl}
         alt={project.title}
         fill
-        sizes="(min-width: 1536px) 25vw, (min-width: 1280px) 33vw, (min-width: 1024px) 50vw, 100vw"
+        sizes="315px"
         className="object-cover"
         placeholder="blur"
         blurDataURL={BLUR_DATA_URL}
@@ -53,6 +58,6 @@ export function ProjectCard({ project, priority = false }: ProjectCardProps) {
 /** Loading placeholder. The grid renders eight of these while fetching. */
 export function ProjectCardSkeleton() {
   return (
-    <div className="bg-surface h-[190px] w-full animate-pulse rounded-lg" />
+    <div className="bg-surface h-[190px] w-[315px] max-w-full animate-pulse rounded-lg" />
   );
 }
