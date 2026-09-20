@@ -87,13 +87,13 @@ export const email = 'yukebrillianth@gmail.com';
  * showed as large bare logos - kept to Yuke's current working stack.
  */
 export const coreStack = [
-  { name: 'Go', icon: '/icons/go.svg' },
+  { name: 'TypeScript', icon: '/icons/ts.svg' },
   { name: 'Next.js', icon: '/icons/nextjs.svg' },
   { name: 'Nest.js', icon: '/icons/nestjs.svg' },
   { name: 'C++', icon: '/icons/cpp.svg' },
   { name: 'ROS', icon: '/icons/ros.svg' },
   { name: 'PostgreSQL', icon: '/icons/pgsql.svg' },
-  { name: 'TypeScript', icon: '/icons/ts.svg' },
+  { name: 'Go', icon: '/icons/go.svg' },
   { name: 'Docker', icon: '/icons/docker.svg' },
 ] as const;
 

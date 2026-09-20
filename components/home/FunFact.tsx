@@ -106,19 +106,21 @@ export function FunFact() {
 
               <motion.p
                 variants={fadeUp}
-                className="text-muted-light mt-[40px] max-w-[560px] text-[18px] leading-[26px] font-normal md:mt-[40px] md:ml-[80px]"
+                className="text-muted-light mt-[40px] max-w-[720px] text-[18px] leading-[26px] font-normal md:mt-[40px] md:ml-[80px]"
               >
-                I started in full-stack web development, then curiosity about
-                robotics took me to IRIS ITS. That turned into ROS, C++,
-                computer vision and real-time multi-robot communication, under
-                conditions where the network is never as good as the demo. I
-                still ship production web software alongside it.
+                I started in full-stack web development, building interfaces,
+                APIs and the databases underneath them. Curiosity about robotics
+                took me to IRIS ITS, and that turned into ROS, C++, computer
+                vision and real-time multi-robot communication under conditions
+                where the network is never as good as the demo. I still ship
+                production web software alongside all of it, and each side keeps
+                sharpening the other.
               </motion.p>
             </ContentBlock>
           </motion.div>
 
           <motion.ul
-            className="flex w-full flex-col items-center gap-6 md:gap-12"
+            className="flex w-full flex-col items-center gap-8 md:gap-20"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -126,7 +128,7 @@ export function FunFact() {
           >
             {logoRows.map((row, rowIndex) => (
               <li key={LOGO_ROWS[rowIndex] ?? rowIndex}>
-                <ul className="flex flex-wrap items-center justify-center gap-5 md:gap-12 lg:gap-16 xl:gap-20">
+                <ul className="flex flex-wrap items-center justify-center gap-5 md:gap-12 lg:gap-20 xl:gap-36">
                   {row.map((tech) => (
                     <motion.li key={tech.name} variants={scaleIn}>
                       <Image

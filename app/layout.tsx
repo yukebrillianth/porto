@@ -28,8 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${gilroy.variable} ${ptSerif.variable} antialiased`}>
+    // The font variables go on <html>, not <body>. Tailwind emits the theme
+    // tokens into :root, so --font-gilroy has to be in scope there for
+    // --font-sans to resolve to anything but the system-ui fallback.
+    <html lang="en" className={`${gilroy.variable} ${ptSerif.variable}`}>
+      <body className="font-sans antialiased">
         {children}
         <ToastProvider />
       </body>

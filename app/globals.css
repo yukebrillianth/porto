@@ -5,6 +5,12 @@
    Tailwind v4 is CSS-first. Do NOT create a tailwind.config.ts.
    ========================================================================== */
 
+/*
+ * The font tokens point at variables that next/font defines, and those are
+ * attached to <html> in app/layout.tsx rather than <body>. Tailwind emits this
+ * block into :root, so --font-gilroy has to be in scope there or --font-sans
+ * silently falls back to system-ui.
+ */
 @theme {
   /* Core palette - the entire flat-color vocabulary of the site. */
   --color-dark: #121212;
