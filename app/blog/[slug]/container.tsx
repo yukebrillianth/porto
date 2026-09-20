@@ -6,7 +6,7 @@ import Script from 'next/script';
 
 import DOMPurify from 'isomorphic-dompurify';
 
-import { LanguageToggle, PostShare } from '@/components/blog';
+import { CommentSection, LanguageToggle, PostShare } from '@/components/blog';
 import { Footer, Navbar } from '@/components/layouts';
 import { GlowOrb, Section, SectionInner } from '@/components/ui';
 import { BLUR_DATA_URL } from '@/lib/image';
@@ -273,11 +273,17 @@ export default function PostContainer({
 
       <Section tone="paper">
         <SectionInner className="md:py-24">
-          <article
-            className="prose-content mx-auto max-w-[720px]"
-            dangerouslySetInnerHTML={{ __html: cleanHtml }}
-            onClick={handleContainerClick}
-          />
+          <div className="w-full max-w-3xl">
+            <article
+              className="prose-content mx-auto w-full max-w-[720px]"
+              dangerouslySetInnerHTML={{ __html: cleanHtml }}
+              onClick={handleContainerClick}
+            />
+
+            <div className="mx-auto mt-20 w-full max-w-3xl border-t border-black/10 pt-12">
+              <CommentSection slug={post.slug} language={post.language} />
+            </div>
+          </div>
         </SectionInner>
       </Section>
 

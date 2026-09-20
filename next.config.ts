@@ -62,7 +62,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               [
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://giscus.app",
                 ghostHostname ? `https://${ghostHostname}` : '',
               ]
                 .filter(Boolean)
@@ -78,12 +78,12 @@ const nextConfig: NextConfig = {
               // CMS reads happen server-side, but keep the endpoints allowed
               // in case a client component ever queries them directly.
               [
-                "connect-src 'self' https://*.hygraph.com",
+                "connect-src 'self' https://*.hygraph.com https://giscus.app",
                 ghostUrl ? `https://${ghostHostname}` : '',
               ]
                 .filter(Boolean)
                 .join(' '),
-              "frame-src 'none'",
+              "frame-src 'self' https://giscus.app",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

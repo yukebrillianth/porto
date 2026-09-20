@@ -739,6 +739,13 @@
     color: #9ca3af;
     margin-top: 0.25rem;
   }
+
+  /* Giscus comments container and iframe */
+  .giscus,
+  .giscus-frame {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
