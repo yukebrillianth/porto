@@ -1,4 +1,4 @@
-# Portfolio Bio — AI Agent Context
+# Portfolio Bio - AI Agent Context
 
 ## Purpose
 
@@ -35,7 +35,7 @@ The user is not abandoning full-stack development. Instead, his profile combines
 
 ---
 
-## Indosat / IOH × ITS × Nokia × NVIDIA — 5G AI-RAN RoboDog Use Case
+## Indosat / IOH × ITS × Nokia × NVIDIA - 5G AI-RAN RoboDog Use Case
 
 ### Project Context
 
@@ -103,7 +103,7 @@ It shows the ability to work across:
 
 Recommended concise portfolio framing:
 
-> **5G AI-RAN RoboDog — ITS × Indosat × Nokia × NVIDIA**  
+> **5G AI-RAN RoboDog - ITS × Indosat × Nokia × NVIDIA**  
 > Developed the software and networking infrastructure for a RoboDog use case remotely operated from Barcelona over a 5G AI-RAN network. Built real-time video streaming, proxy/tunneling/routing infrastructure, and deployment workflows, while integrating vision AI running on NVIDIA GH200 infrastructure. The system connected a physical robot in Surabaya with remote users in Barcelona, combining robotics, 5G networking, and accelerated AI into a single real-time application.
 
 ### Accuracy / Attribution Notes
@@ -120,7 +120,7 @@ Recommended concise portfolio framing:
 
 ## Current IRIS Experience
 
-### Senior Software Engineer — IRIS ITS Robotic Team
+### Senior Software Engineer - IRIS ITS Robotic Team
 
 November 2025 – Present
 
@@ -144,7 +144,7 @@ Documented contributions:
 - Built Base Station software for referee integration, robot assignment, telemetry, and operational monitoring.
 - Contributed to IRIS's international participation at RoboCup 2026 in Incheon, South Korea.
 
-### Software Engineer — IRIS ITS Robotic Team
+### Software Engineer - IRIS ITS Robotic Team
 
 November 2024 – November 2025
 
@@ -159,7 +159,7 @@ Documented contributions:
 - Developed mobile applications for robots.
 - Built websites for recruitment and other internal team needs.
 
-### Software Engineer Intern — IRIS ITS Robotic Team
+### Software Engineer Intern - IRIS ITS Robotic Team
 
 October 2024 – November 2024
 
@@ -191,7 +191,7 @@ Preferred wording:
 
 ## Full-Stack / Product Engineering Background
 
-### PT. Alamanda Putra Mandiri — Head of Information Technology
+### PT. Alamanda Putra Mandiri - Head of Information Technology
 
 January 2025 – Present
 
@@ -209,15 +209,15 @@ This experience demonstrates that the user's software work is not limited to aca
 
 ## Other Professional / Organizational Experience
 
-### MAGE 12 — Head of IT Development Division
+### MAGE 12 - Head of IT Development Division
 
 February 2026 – Present
 
-### BETA U — Frontend Developer
+### BETA U - Frontend Developer
 
 June 2024 – Present
 
-### Ini Lho ITS! — Staff of Frontend IT Development
+### Ini Lho ITS! - Staff of Frontend IT Development
 
 October 2024 – March 2025
 
@@ -226,7 +226,7 @@ October 2024 – March 2025
 - Built responsive interfaces.
 - Worked with UI/UX designers and backend developers.
 
-### MAGE X — Volunteer, Competition Division
+### MAGE X - Volunteer, Competition Division
 
 September 2024 – November 2024
 
@@ -238,11 +238,11 @@ September 2024 – November 2024
 
 Important earlier experiences:
 
-- Head of Programming Division — Information Communication and Technology Community (ICTC), December 2022 – November 2023.
-- Broadcast Engineer — Gelar Seni Siswa 2023.
-- Broadcast Engineer — Classmeeting 2 E-Sport 2023.
-- Head of Broadcast Team — Gelar Seni Siswa 2022.
-- PHP Web Developer — Putra Putri SMAN 1 Taman 2022–2023.
+- Head of Programming Division - Information Communication and Technology Community (ICTC), December 2022 – November 2023.
+- Broadcast Engineer - Gelar Seni Siswa 2023.
+- Broadcast Engineer - Classmeeting 2 E-Sport 2023.
+- Head of Broadcast Team - Gelar Seni Siswa 2022.
+- PHP Web Developer - Putra Putri SMAN 1 Taman 2022–2023.
 
 Documented achievements/projects:
 
@@ -260,11 +260,11 @@ These early experiences can be mentioned briefly as the origin of the user's int
 
 Documented:
 
-- **1st Place — MAGE 9 App Development Competition**, Department of Computer Engineering, ITS.
+- **1st Place - MAGE 9 App Development Competition**, Department of Computer Engineering, ITS.
 - **Aku Pintar Bug Hunter**
-- **1st Place — Scratch Competition, MGMP Informatika SMP Sidoarjo (2020)**
-- **1st Place — Animation Competition, BIMBATION UNESA (2020)**
-- **ICTC 2022–2023 — Head of Division / organizational leadership**
+- **1st Place - Scratch Competition, MGMP Informatika SMP Sidoarjo (2020)**
+- **1st Place - Animation Competition, BIMBATION UNESA (2020)**
+- **ICTC 2022–2023 - Head of Division / organizational leadership**
 
 The MAGE 9 achievement is the most relevant older achievement for a professional software-engineering narrative.
 

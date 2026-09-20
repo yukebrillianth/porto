@@ -19,7 +19,7 @@ type ProjectGalleryProps = {
  * Cover image + thumbnail strip, with a zoom lightbox.
  *
  * The lightbox is the native `<dialog>` element opened via `showModal()`, which
- * gives us the whole accessibility contract for free — focus trap, `Escape` to
+ * gives us the whole accessibility contract for free - focus trap, `Escape` to
  * dismiss, implicit `aria-modal`, inertness of the rest of the page, and focus
  * restoration on close. Only backdrop-click-to-dismiss has to be wired by hand.
  * The 2022 site used Headless UI's Dialog for this; the platform now covers it,
@@ -51,7 +51,7 @@ export function ProjectGallery({
 
   /**
    * `<dialog>` sizes itself to its content, so any click landing on the element
-   * itself — rather than on a child — came from the ::backdrop.
+   * itself - rather than on a child - came from the ::backdrop.
    */
   const handleBackdropClick = (event: MouseEvent<HTMLDialogElement>) => {
     if (event.target === dialogRef.current) closeLightbox();
@@ -109,7 +109,7 @@ export function ProjectGallery({
       <dialog
         ref={dialogRef}
         onClick={handleBackdropClick}
-        aria-label={`${title} — enlarged image`}
+        aria-label={`${title} - enlarged image`}
         className="backdrop:bg-dark/90 m-auto max-h-[92vh] max-w-[92vw] bg-transparent p-0 backdrop:backdrop-blur-sm"
       >
         <button

@@ -22,7 +22,7 @@ type PortfolioContainerProps = {
 };
 
 /**
- * `/portfolio` is dark end to end — no light band — so the navbar sits inside
+ * `/portfolio` is dark end to end - no light band - so the navbar sits inside
  * the section and the footer takes the `light` prop to drop its own background.
  *
  * Search and category both write to the URL (`?q=`, `?category=`) rather than to

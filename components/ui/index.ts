@@ -5,4 +5,5 @@
 export { Button, ButtonLink } from './Button';
 export { Eyebrow } from './Eyebrow';
 export { GlowOrb } from './GlowOrb';
-export { Section, SectionInner, SectionTitle } from './Section';
+export { ContentBlock, Section, SectionInner, SectionTitle } from './Section';
+export { AnimatedTimeline } from './AnimatedTimeline';

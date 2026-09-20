@@ -29,7 +29,7 @@ const credits = [
 type FooterProps = {
   /**
    * Drops the grid background and `bg-dark` so the footer can sit inside a
-   * section that is already dark — mirrors the 2022 `<Footer light />` API.
+   * section that is already dark - mirrors the 2022 `<Footer light />` API.
    */
   light?: boolean;
   className?: string;

@@ -1,0 +1,51 @@
+<svg width="1583" height="684" viewBox="0 0 1583 684" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g clip-path="url(#clip0_2_48)">
+<g filter="url(#filter0_f_2_48)">
+<ellipse cx="785.5" cy="628" rx="680.5" ry="408" fill="url(#paint0_radial_2_48)" fill-opacity="0.2"/>
+</g>
+<path d="M786 369C956.265 369 1094 495.858 1094 652C1094 808.142 956.265 935 786 935C615.735 935 478 808.142 478 652C478 495.858 615.735 369 786 369Z" stroke="url(#paint1_linear_2_48)" stroke-width="4"/>
+<path d="M785.5 417C936.487 417 1059 543.639 1059 700C1059 856.361 936.487 983 785.5 983C634.513 983 512 856.361 512 700C512 543.639 634.513 417 785.5 417Z" stroke="url(#paint2_linear_2_48)" stroke-width="4"/>
+
+
+
+
+
+
+
+
+
+</g>
+<defs>
+<filter id="filter0_f_2_48" x="-95" y="20" width="1761" height="1216" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="100" result="effect1_foregroundBlur_2_48"/>
+</filter>
+
+<radialGradient id="paint0_radial_2_48" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(785.5 628) rotate(90) scale(408 680.5)">
+<stop stop-color="#BB34FA"/>
+<stop offset="0.0001" stop-color="#BB34FA"/>
+<stop offset="1" stop-color="#BB34FA" stop-opacity="0.2"/>
+</radialGradient>
+<linearGradient id="paint1_linear_2_48" x1="786" y1="367" x2="786" y2="633" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="paint2_linear_2_48" x1="785.5" y1="415" x2="785" y2="634" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="paint3_linear_2_48" x1="483" y1="399" x2="482.5" y2="450.377" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+<linearGradient id="paint4_linear_2_48" x1="1105" y1="530" x2="1104.56" y2="581.378" gradientUnits="userSpaceOnUse">
+<stop stop-color="white"/>
+<stop offset="1" stop-color="white" stop-opacity="0"/>
+</linearGradient>
+<clipPath id="clip0_2_48">
+<rect width="1583" height="684" fill="white"/>
+</clipPath>
+
+</defs>
+</svg>

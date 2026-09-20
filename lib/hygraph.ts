@@ -45,7 +45,7 @@ export const projectTags = {
  * We do not use `GraphQLClient` from `graphql-request` because it gives no way
  * to set per-request Next.js cache options, and ISR is the whole point here:
  * the CMS should be hit on publish, not once per visitor. Never pass
- * `cache: 'no-store'` — reads are always cached.
+ * `cache: 'no-store'` - reads are always cached.
  *
  * @example
  * const data = await gqlFetch<{ portfolios: { slug: string }[] }>(
@@ -129,7 +129,7 @@ export async function hygraphFetch<T>(
 
   if (!endpoint) {
     console.warn(
-      '[hygraph] HYGRAPH_ENDPOINT is not set — returning empty content. ' +
+      '[hygraph] HYGRAPH_ENDPOINT is not set - returning empty content. ' +
         'Set it in .env.local to enable portfolio projects.'
     );
     return null;

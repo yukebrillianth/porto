@@ -1,6 +1,6 @@
-# CLAUDE.md — yukebrillianth portfolio
+# CLAUDE.md - yukebrillianth portfolio
 
-Personal portfolio of **Yuke Brilliant Hestiavin** — Software Engineer (autonomous
+Personal portfolio of **Yuke Brilliant Hestiavin** - Software Engineer (autonomous
 robotics, distributed systems, full-stack). A 2026 rewrite of the 2022 Next.js portfolio,
 rebuilt on the owner's personal Next.js template.
 
@@ -17,7 +17,7 @@ rebuilt on the owner's personal Next.js template.
 
 There is no auth, no login, no dashboard, no protected routes, no user accounts, no
 client-side data store. The starter template shipped an auth scaffold (AuthContext,
-sign-in route, ProtectedRoute, react-query) — it has all been deleted deliberately.
+sign-in route, ProtectedRoute, react-query) - it has all been deleted deliberately.
 **Do not reintroduce any of it.** Every page is public, and all data is fetched on the
 server with ISR.
 
@@ -37,18 +37,22 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind **v4** ·
 5. **Named exports** for reusable code; default exports only where Next.js requires them
    (page/layout/loading/error/not-found/container).
 6. **Props typed with `type`**, named `XProps`. `interface` is reserved for API shapes in `types/`.
-7. **`cn()` lives at `@/lib/cn`** — not `lib/utils`. Use it only for conditional classes.
+7. **`cn()` lives at `@/lib/cn`** - not `lib/utils`. Use it only for conditional classes.
 8. **Path alias `@/*` → repo root.** There is no `src/` directory; do not add one.
 9. **Import order is enforced** (eslint `import-helpers`), blank-line separated:
    `react` → `next` → third-party → `@/` → relative. Alphabetized within groups.
-10. **Never hand-order Tailwind classes** — `prettier-plugin-tailwindcss` sorts them.
+10. **Never hand-order Tailwind classes** - `prettier-plugin-tailwindcss` sorts them.
 
 ## Conventions
 
+- **Never use em dashes or section signs anywhere.** Not in UI copy, not in code, not in
+  comments or JSDoc. Use a plain hyphen `-`, or rewrite the sentence. This is a hard
+  house rule. To check before committing:
+  `grep -rnP '\x{2014}|\x{00A7}' components app lib constants`
 - **Prettier:** single quotes, semicolons, 2-space tabs, ES5 trailing commas, 80 cols.
 - **Files:** `PascalCase.tsx` for components, `kebab-case.ts` for everything else.
 - **UI copy is English** on this site (matching the 2022 original). Code/comments English.
-  Note the template ships Indonesian strings — replace them, don't imitate them.
+  Note the template ships Indonesian strings - replace them, don't imitate them.
 - **Numeric literals** use `_` separators: `60_000`, `15_000`.
 - **Static content** (projects, skills, socials, nav) → `constants/` as `as const` objects
   with derived types: `type NavLink = (typeof navLinks)[number]`.
@@ -61,7 +65,7 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind **v4** ·
 Two independent CMS backends, each a thin `graphql-request` client in `lib/`:
 
 - **Hygraph** (was GraphCMS) → portfolio projects. Endpoint format
-  `https://<region>.cdn.hygraph.com/content/<projectId>/master`. Server-side env only —
+  `https://<region>.cdn.hygraph.com/content/<projectId>/master`. Server-side env only -
   **no `NEXT_PUBLIC_` prefix**, the token must never reach the client bundle.
 - **Hashnode** → blog posts, from publication `yukebrillianth.hashnode.dev`.
 
@@ -70,7 +74,7 @@ Two independent CMS backends, each a thin `graphql-request` client in `lib/`:
 `app/api/revalidate/route.ts`. Never `cache: 'no-store'` on CMS reads.
 
 **SEO:** blog posts render on this domain with `<link rel="canonical">` pointing here, and
-the Hashnode-side canonical points here too — so this domain accrues the authority
+the Hashnode-side canonical points here too - so this domain accrues the authority
 instead of `*.hashnode.dev`.
 
 ## Commands
@@ -86,7 +90,7 @@ Run `pnpm lint:fix && pnpm format` before committing.
 
 ## Assets
 
-- `public/fonts/` — Gilroy (self-hosted, the brand face)
-- `public/backgrounds/` — `grid-dark.svg`, `grid-light.svg`, `black-hole.svg` (404 only)
-- `public/icons/` — social + tech logos
-- `public/logo.svg` — wordmark, note the trailing dot glyph
+- `public/fonts/` - Gilroy (self-hosted, the brand face)
+- `public/backgrounds/` - `grid-dark.svg`, `grid-light.svg`, `black-hole.svg` (404 only)
+- `public/icons/` - social + tech logos
+- `public/logo.svg` - wordmark, note the trailing dot glyph

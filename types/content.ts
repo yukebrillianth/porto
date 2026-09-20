@@ -1,6 +1,6 @@
 /**
  * Shared content types. These are the contract between the CMS data layer and
- * the presentation components — agents building UI code against these do not
+ * the presentation components - agents building UI code against these do not
  * need to wait on the data layer implementation.
  */
 

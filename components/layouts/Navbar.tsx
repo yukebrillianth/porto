@@ -13,7 +13,7 @@ import { cn } from '@/lib/cn';
 /**
  * The hamburger from the 2022 original. Its character comes from the
  * deliberately short bar (`M31 16H13`) breaking the rhythm of the two
- * full-width rules — stroke-width 2, round caps, on a 32x32 box.
+ * full-width rules - stroke-width 2, round caps, on a 32x32 box.
  */
 function MenuIcon() {
   return (
@@ -77,7 +77,7 @@ export function Navbar({ className }: NavbarProps) {
         <Link
           href="/"
           className="focus-visible:ring-primary rounded focus-visible:ring-2 focus-visible:outline-none"
-          aria-label="Yuke Brilliant — home"
+          aria-label="Yuke Brilliant - home"
         >
           <Image
             src="/logo.svg"

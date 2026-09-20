@@ -1,7 +1,7 @@
 import { ProjectCardSkeleton } from '@/components/portfolio';
 import { GlowOrb, Section, SectionInner, SectionTitle } from '@/components/ui';
 
-/** Eight skeleton tiles — roughly two rows at the xl grid width. */
+/** Eight skeleton tiles - roughly two rows at the xl grid width. */
 const SKELETON_COUNT = 8;
 
 export default function Loading() {

@@ -1,8 +1,8 @@
-# Design Brief — yukebrillianth portfolio (2026 rewrite)
+# Design Brief - yukebrillianth portfolio (2026 rewrite)
 
 > **This is the source of truth for all visual decisions.** Every agent working on this
 > repo must read this file before writing UI code. The goal is to carry the _soul_ of the
-> 2022 portfolio into a modern stack — not to redesign it.
+> 2022 portfolio into a modern stack - not to redesign it.
 
 ---
 
@@ -12,7 +12,7 @@ Dark-first, cosmic-editorial. A near-black canvas (`#121212`) with a barely-visi
 hairline graph-paper grid on every surface, punctuated by blurred violet→amber conic
 "orbs" that drift to a different corner in each section. A single orange accent
 (`#FF9800`) carries every call-to-action, always as a full-round pill with a soft orange
-glow beneath it. Typography is one family — Gilroy — set heavy, tight and large, with
+glow beneath it. Typography is one family - Gilroy - set heavy, tight and large, with
 section titles that always end in a period. Light `#FFFFFF` bands are used _only_ for
 reading content, creating a dark-chrome / light-paper rhythm down the page.
 
@@ -23,22 +23,22 @@ reading content, creating a dark-chrome / light-paper rhythm down the page.
 ## 2. Color tokens
 
 Defined in `app/globals.css` via `@theme inline`. **Never hardcode these hexes in
-components — use the utility classes.**
+components - use the utility classes.**
 
 | Token                  | Hex       | Utility                                      | Role                                                        |
 | ---------------------- | --------- | -------------------------------------------- | ----------------------------------------------------------- |
 | `--color-dark`         | `#121212` | `bg-dark`                                    | The primary canvas. Dominant ground.                        |
 | `--color-primary`      | `#FF9800` | `bg-primary` `text-primary` `border-primary` | The _only_ flat accent. CTAs, eyebrow rules, active states. |
-| `--color-surface`      | `#1D1D1D` | `bg-surface`                                 | Raised cards on dark. A 5% lift — no border, no shadow.     |
+| `--color-surface`      | `#1D1D1D` | `bg-surface`                                 | Raised cards on dark. A 5% lift - no border, no shadow.     |
 | `--color-surface-deep` | `#101010` | `bg-surface-deep`                            | Inset pills (blog series chips).                            |
 | `--color-muted-dark`   | `#B8B8B8` | `text-muted-dark`                            | Body copy **on dark** sections.                             |
 | `--color-muted-light`  | `#575958` | `text-muted-light`                           | Body copy **on light** sections.                            |
-| `--color-violet`       | `#BB34FA` | —                                            | Gradient partner only. Never a flat fill.                   |
-| `--color-violet-deep`  | `#B524F9` | —                                            | The `0deg` stop of the conic orb only.                      |
+| `--color-violet`       | `#BB34FA` | -                                            | Gradient partner only. Never a flat fill.                   |
+| `--color-violet-deep`  | `#B524F9` | -                                            | The `0deg` stop of the conic orb only.                      |
 
 **Rules**
 
-- Violet never appears as a flat color — it exists only inside gradients and glows.
+- Violet never appears as a flat color - it exists only inside gradients and glows.
 - There is no secondary flat accent. If something needs emphasis, it's orange or it's white.
 - Headings on dark are always pure `#FFFFFF`, never a gray.
 
@@ -51,7 +51,7 @@ and exposed as `--font-gilroy` → `font-sans`. Weights 100–900 with italics a
 
 **Second family: PT Serif**, loaded via `next/font/google`, exposed as `--font-serif`.
 Used _exclusively_ for long-form article body copy (blog posts, project detail prose) at
-20px. The 2022 site declared PT Serif but never loaded it — we fix that.
+20px. The 2022 site declared PT Serif but never loaded it - we fix that.
 
 ### Scale
 
@@ -97,7 +97,7 @@ hover:opacity-70 transition
 ### 4.2 The outdented eyebrow rule (`<Eyebrow>`)
 
 A 32px orange hairline raised to superscript, sitting 1em before every section label.
-Editorial and magazine-like — it's what makes labels read as labels.
+Editorial and magazine-like - it's what makes labels read as labels.
 
 ```
 text-[13px] leading-[23px] font-semibold
@@ -133,7 +133,7 @@ Positions are deliberately non-repeating: Hero `left-[12%] top-[15%]` · FunFact
 
 `grid-dark.svg` / `grid-light.svg` at 1–6% opacity, ~111px pitch, behind **every**
 section, the navbar and the footer. Background-size steps `400% → 300% → 200% → cover`
-across breakpoints with `background-position: 100%`. Barely perceptible — but remove it
+across breakpoints with `background-position: 100%`. Barely perceptible - but remove it
 and the site goes flat. This is the connective tissue.
 
 ### 4.5 SVG line-draw reveal
@@ -151,18 +151,57 @@ alternate` forever.
 
 ## 5. Layout & rhythm
 
+### 5.0 EVERY SECTION IS A CENTERED COLUMN - read this first
+
+This is the rule the first build got wrong, and getting it wrong makes the whole
+site look nothing like the original. **Every top-level section in the 2022 site is
+`flex flex-col items-center`.** The section title and the content block are
+_centered in the viewport_; they are NOT left-aligned to the gutter.
+
+```
+<section class="relative flex flex-col items-center px-7 py-16 md:px-[170px] md:py-32">
+  <h2>About Me.</h2>              ← centered by items-center
+  <div>                            ← the "Quotes" block, also centered
+    <Eyebrow>FUN FACT</Eyebrow>    ← left-aligned INSIDE this block
+    <h2 class="md:ml-[80px]">…</h2>← indented 80px relative to the eyebrow
+    <p  class="md:ml-[80px]">…</p>
+  </div>
+</section>
+```
+
+So there are two levels: the **block** is centered in the page, and _within_ the
+block the eyebrow hangs at the block's left edge while the heading/paragraph are
+pushed 80px right of it. Left-aligning the whole block to the page gutter - which
+is what "content-indent on a full-width section" produces - is wrong.
+
+Exact original values:
+
+| Section     | Wrapper                                                                                                    |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| Hero        | `flex flex-col items-center md:px-0`                                                                       |
+| FunFact     | `flex flex-col items-center` · `p-[64px_28px] md:p-[128px_170px]` · title `mb-[92px]` · block `mb-[100px]` |
+| Education   | `flex flex-wrap justify-around items-center` · `p-[64px_32px_128px] md:p-[128px_170px_70px]`               |
+| Social      | `flex flex-wrap-reverse justify-around items-center` · `p-[0_32px_128px] md:p-[0_170px_128px]`             |
+| Portfolio   | `flex flex-col items-center justify-between xl:justify-center` · title `mb-[40px]` · filters `mb-[100px]`  |
+| LatestPosts | `flex flex-col items-center` · `p-[64px_28px] md:p-[128px_170px]` · title `mb-[92px]`                      |
+
+Education and Social are **not** column layouts - they are `flex-wrap` rows that
+put the text block and the illustration side by side and wrap on mobile.
+
+### 5.1 Other measures
+
 - **Section padding:** `px-7 py-16` → `md:px-[170px] md:py-32`. The **170px side gutter**
   is the signature desktop measure.
-- **The 80px indent:** on desktop, content headings and paragraphs are indented `80px`
-  from the left while the eyebrow label hangs outdented at the true margin. This is the
-  most distinctive compositional move on the site — preserve it.
-- **Alternating bands:** the page is a stack of dark/light sections.
-  Dark → Light → Dark → Light → Footer(dark).
+- **The 80px indent:** within a content block, the heading and paragraph are indented
+  `80px` while the eyebrow hangs outdented. Preserve it.
+- **Alternating bands:** Dark → Light → Dark → Light → Footer(dark).
 - **Zig-zag:** Education uses normal wrap (text left, art right); Social uses
   `flex-wrap-reverse` (art left, text right) so the two sections mirror each other.
-- **Breakpoints:** this is a 2-state design. `md` does ~80% of the work. Reach for `lg`/
-  `xl`/`2xl` only for grid column counts.
+- **Breakpoints:** this is a 2-state design. `md` does ~80% of the work.
 - Portfolio grid: `1 → lg:2 → xl:3 → 2xl:4`, gap `20px`.
+- **Skill logos are large and bare** - no text labels, no chips. `flex flex-wrap`
+  with `space-x-8 space-y-8 md:space-x-12 lg:space-x-24 xl:space-x-32`,
+  `place-items-center place-content-center`, rendered at ~100px tall.
 
 ---
 
@@ -170,7 +209,7 @@ alternate` forever.
 
 | Component          | Treatment                                                                                                         |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| Card on dark       | `bg-surface rounded-xl px-7 py-2.5` — no border, no shadow, no hover                                              |
+| Card on dark       | `bg-surface rounded-xl px-7 py-2.5` - no border, no shadow, no hover                                              |
 | Social card        | Full-card click target via stretched link: `after:absolute after:inset-0`                                         |
 | Portfolio card     | `rounded-lg` cover; hover reveals `bg-dark/70` scrim + centered 22px title, `transition duration-300 ease-in-out` |
 | Active filter chip | **Inverted**: `bg-white text-dark`. Inactive: transparent + white text                                            |
@@ -180,13 +219,13 @@ alternate` forever.
 
 ---
 
-## 7. Hard rules — do not violate
+## 7. Hard rules - do not violate
 
 1. **No twin.macro, no styled-components.** Plain Tailwind v4 utility classes only,
    per the template. Arbitrary values (`text-[54px]`) are fine and expected.
 2. **No `tracking-*`** anywhere.
 3. **Never drop the period** from a section title.
-4. **Never change the glow shadow value** — `0px 4px 20px rgba(255,152,0,0.3)`.
+4. **Never change the glow shadow value** - `0px 4px 20px rgba(255,152,0,0.3)`.
 5. **No new accent colors.** Orange, white, violet-in-gradients. That's the palette.
 6. **No theme toggle.** Dark/light are compositional bands, not a user preference. The
    2022 config had `darkMode: false` deliberately.
@@ -203,7 +242,7 @@ The 2022 site is the reference for _taste_, not for _code quality_. These are fi
   Replaced with a real `next/image` photo + a lightweight SVG frame for the glow,
   orbit arcs and floating chips.
 - `education.svg` (68KB) rebuilt as a real, accessible React timeline component driven by
-  data — so it's editable, responsive, and readable by screen readers.
+  data - so it's editable, responsive, and readable by screen readers.
 - Line-draw animations now trigger on scroll and respect `prefers-reduced-motion`.
 - `@font-face` cleaned up: the 2022 sheet registered ExtraBold _and_ Bold both as `bold`,
   making ExtraBold unreachable. Now loaded properly via `next/font/local` with correct
@@ -222,4 +261,4 @@ Section titles are short noun phrases ending in a period. Eyebrows are UPPERCASE
 
 **Avoid:** "passionate developer", buzzword stacking, "guru/expert/10x", resume-bullet
 phrasing, invented metrics. See `docs/bio-context.md` for the full content rules and the
-factual record — never invent a fact that isn't in that file.
+factual record - never invent a fact that isn't in that file.

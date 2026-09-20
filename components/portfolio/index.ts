@@ -1,5 +1,5 @@
 /**
- * Portfolio components. See docs/design-brief.md §6 for the card and chip
+ * Portfolio components. See docs/design-brief.md Sec. 6 for the card and chip
  * treatments before changing anything here.
  */
 

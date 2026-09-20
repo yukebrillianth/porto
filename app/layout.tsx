@@ -11,7 +11,7 @@ export const metadata: Metadata = defaultMetadata;
 /**
  * Navbar/Footer are deliberately NOT rendered here.
  *
- * The navbar has no background of its own — it inherits the grid + orb of
+ * The navbar has no background of its own - it inherits the grid + orb of
  * whatever section it sits on. `/portfolio` renders it inside its own dark
  * hero section, so a root-level navbar would either double up or force an
  * overlay hack (fixed positioning + per-page top padding) that the 2022
@@ -20,7 +20,7 @@ export const metadata: Metadata = defaultMetadata;
  *
  * There are no context providers: this is a portfolio + blog with no auth and
  * no user state, and all data fetching is server-side ISR. `ToastProvider` is
- * a leaf sibling, not a wrapper — the contact form is its only consumer.
+ * a leaf sibling, not a wrapper - the contact form is its only consumer.
  */
 export default function RootLayout({
   children,

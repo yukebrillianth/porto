@@ -5,7 +5,7 @@ import { getProjects } from '@/services/projects';
 
 import PortfolioContainer from './container';
 
-// Must be a literal — Next.js statically analyses this value.
+// Must be a literal - Next.js statically analyses this value.
 export const revalidate = 3600;
 
 export const metadata: Metadata = generateMetadata({

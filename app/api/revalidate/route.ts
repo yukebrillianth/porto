@@ -49,7 +49,7 @@ function secretMatches(provided: string, expected: string): boolean {
 
 /** Work out which namespaced tags a payload should invalidate. */
 function resolveTags(body: WebhookBody): string[] {
-  // Explicit tag — manual curl or a custom webhook.
+  // Explicit tag - manual curl or a custom webhook.
   if (body.type === 'tag' && body.value) {
     return [body.value];
   }
@@ -82,7 +82,7 @@ function resolveTags(body: WebhookBody): string[] {
  *
  * Both senders must present the shared secret as `X-Webhook-Secret`; anything
  * else gets a 401. The payload is mapped onto namespaced cache tags so a
- * publish busts exactly one entry plus its collection — never the whole site.
+ * publish busts exactly one entry plus its collection - never the whole site.
  *
  * @example
  * // curl -X POST https://yukebrillianth.my.id/api/revalidate \

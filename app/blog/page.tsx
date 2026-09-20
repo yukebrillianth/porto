@@ -12,7 +12,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = buildMetadata({
   title: 'Blog',
   description:
-    'Notes on robotics, distributed systems, networking and full-stack engineering — written while building them.',
+    'Notes on robotics, distributed systems, networking and full-stack engineering - written while building them.',
   url: `${siteConfig.url}/blog`,
 });
 

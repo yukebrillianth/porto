@@ -1,12 +1,45 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion, type Variants } from 'motion/react';
 
+import {
+  EASE_DRAW,
+  EASE_OUT,
+  fadeIn,
+  fadeUp,
+  staggerContainer,
+  VIEWPORT,
+} from '@/components/ui/motion';
 import type { TimelineEntry } from '@/constants';
 import { cn } from '@/lib/cn';
 
-/** Per-entry stagger for the draw-on reveal, in milliseconds. */
-const STAGGER_MS = 120;
+/**
+ * Geometry. The rail sits in a 24px gutter column, the node is a 14px bead
+ * centred in it, and the card is padded 24px with a 22px first line - so the
+ * node's centre lands at 24 + 11 = 35px, exactly on the card title's baseline
+ * box. Change the card padding and these two numbers must move with it.
+ */
+const NODE_TOP = 'mt-[28px]';
+const RAIL_TOP = 'top-[35px]';
+
+/** The rail draws itself downward from the first node. */
+const railDraw: Variants = {
+  hidden: { scaleY: 0 },
+  visible: {
+    scaleY: 1,
+    transition: { duration: 1.1, ease: EASE_DRAW },
+  },
+};
+
+/** Each bead pops onto the rail as its row arrives. */
+const nodePop: Variants = {
+  hidden: { opacity: 0, scale: 0 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.4, ease: EASE_OUT },
+  },
+};
 
 type AnimatedTimelineProps = {
   entries: readonly TimelineEntry[];
@@ -14,143 +47,129 @@ type AnimatedTimelineProps = {
 };
 
 /**
- * The education/experience timeline. Replaces the 2022 `education.svg` — a 68KB
- * static zig-zag of three dark cards joined by a white connector — with a real,
- * data-driven React component: accessible, responsive and editable.
+ * The merged education + experience timeline.
  *
- * The connector draws itself on scroll into view (`stroke-dashoffset` → 0 with
- * the `--ease-draw` easing, staggered 120ms per entry). The 2022 markup had an
- * `onScreen` class that was never wired to anything; this uses a real
- * IntersectionObserver. `prefers-reduced-motion` is honoured globally by
- * globals.css, which collapses these transitions to 0.01ms.
+ * Single column: one unbroken rail down the left, every card to its right.
+ * The previous version used a 3-column alternating zig-zag whose connector was
+ * rebuilt per row, which left visible seams between segments and stranded the
+ * node dots in empty space. Here the rail is a *single* element spanning the
+ * whole list, so it physically cannot break, and each bead is centred in the
+ * same gutter column the rail runs through.
+ *
+ * `kind` is carried by the bead: work is a solid disc, education is a hollow
+ * ring. `current` colours it `primary`; past entries are white. Every bead
+ * wears a soft ring so it reads as threaded onto the rail rather than laid
+ * beside it.
+ *
+ * The rail draws downward on scroll into view and the rows stagger in behind
+ * it. Under `prefers-reduced-motion` all three collapse to a plain cross-fade.
  */
 export function AnimatedTimeline({
   entries,
   className,
 }: AnimatedTimelineProps) {
-  const rootRef = useRef<HTMLOListElement>(null);
-  const [drawn, setDrawn] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
-  useEffect(() => {
-    const node = rootRef.current;
-    if (!node) return;
-
-    // State is only ever set from the observer callback — never synchronously
-    // in the effect body. Under `prefers-reduced-motion` the reveal still runs,
-    // but globals.css collapses every duration to 0.01ms, so it lands instantly
-    // instead of animating.
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setDrawn(true);
-        observer.disconnect();
-      },
-      { threshold: 0.25 }
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, []);
+  const railVariants = shouldReduceMotion ? fadeIn : railDraw;
+  const nodeVariants = shouldReduceMotion ? fadeIn : nodePop;
+  const cardVariants = shouldReduceMotion ? fadeIn : fadeUp;
 
   return (
-    <ol ref={rootRef} className={cn('relative w-full', className)}>
+    <motion.ol
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={VIEWPORT}
+      className={cn('relative w-full', className)}
+    >
+      {/*
+        One rail for the whole list. It starts on the first bead and fades out
+        below the last one, so the line is continuous between every node
+        without needing to measure the final card's height.
+      */}
+      <motion.span
+        aria-hidden="true"
+        variants={railVariants}
+        className={cn(
+          'absolute bottom-0 left-[11px] w-[2px] origin-top rounded-full',
+          'from-primary/60 bg-linear-to-b via-white/25 to-white/10',
+          '[mask-image:linear-gradient(to_bottom,#000_0%,#000_calc(100%-88px),transparent_100%)]',
+          RAIL_TOP
+        )}
+      />
+
       {entries.map((entry, index) => {
-        const delay = `${index * STAGGER_MS}ms`;
         const isLast = index === entries.length - 1;
-        // Cards alternate left/right on desktop, mirroring the 2022 zig-zag.
-        const isLeft = index % 2 === 0;
+        const isEducation = entry.kind === 'education';
 
         return (
           <li
             key={`${entry.org}-${entry.role}`}
-            className="grid grid-cols-[24px_1fr] gap-x-4 md:grid-cols-[1fr_24px_1fr] md:gap-x-6"
+            className={cn(
+              'grid grid-cols-[24px_1fr] gap-x-4 md:gap-x-6',
+              !isLast && 'pb-8 md:pb-10'
+            )}
           >
-            {/* Desktop-only spacer so right-hand cards clear the rail. */}
-            <div
-              aria-hidden="true"
-              className={cn('hidden md:block', isLeft && 'md:order-none')}
-            />
-
-            {/* The white connector rail and its node. */}
-            <div
-              aria-hidden="true"
-              className="relative flex justify-center md:order-2"
-            >
-              {!isLast && (
-                <svg
-                  viewBox="0 0 4 100"
-                  preserveAspectRatio="none"
-                  className="absolute inset-0 h-full w-[4px]"
-                  fill="none"
-                >
-                  {/*
-                    pathLength="1" normalises the dash maths, so the draw-on
-                    works at any rendered height without measuring the DOM.
-                  */}
-                  <path
-                    d="M2 0V100"
-                    stroke="#fff"
-                    strokeWidth="4"
-                    pathLength="1"
-                    strokeDasharray="1"
-                    style={{
-                      strokeDashoffset: drawn ? 0 : 1,
-                      transition: `stroke-dashoffset 600ms var(--ease-draw) ${delay}`,
-                    }}
-                  />
-                </svg>
-              )}
-
-              <span
+            {/* The bead, centred on the rail and level with the card title. */}
+            <div aria-hidden="true" className="flex justify-center">
+              <motion.span
+                variants={nodeVariants}
                 className={cn(
-                  'relative mt-7 h-[18px] w-[18px] shrink-0 rounded-full',
-                  'transition-[opacity,transform] duration-300 ease-out',
-                  entry.current ? 'bg-primary' : 'bg-white',
-                  drawn ? 'scale-100 opacity-100' : 'scale-0 opacity-0'
+                  'h-[14px] w-[14px] shrink-0 rounded-full',
+                  NODE_TOP,
+                  entry.current ? 'ring-primary/15' : 'ring-white/10',
+                  'ring-4',
+                  isEducation
+                    ? cn(
+                        'bg-dark border-[3px]',
+                        entry.current ? 'border-primary' : 'border-white'
+                      )
+                    : entry.current
+                      ? 'bg-primary'
+                      : 'bg-white'
                 )}
-                style={{ transitionDelay: delay }}
               />
             </div>
 
-            {/* The card. */}
-            <div
-              className={cn(
-                'pb-10 md:order-3',
-                isLeft &&
-                  'md:order-1 md:col-start-1 md:row-start-1 md:flex md:justify-end'
-              )}
+            <motion.div
+              variants={cardVariants}
+              className="bg-surface rounded-[12px] p-6"
             >
-              <div
-                className={cn(
-                  'bg-surface min-h-[86px] rounded-[12px] px-7 py-4',
-                  'w-full max-w-[280px]',
-                  'transition-[opacity,transform] duration-500 ease-out',
-                  drawn
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-2 opacity-0'
-                )}
-                style={{ transitionDelay: delay }}
-              >
-                <p className="text-[18px] leading-[22px] font-semibold text-white">
-                  {entry.role}
-                </p>
-                <p className="text-muted-dark mt-1 text-[14px] leading-[18px] font-medium">
-                  {entry.org}
-                </p>
-                <p
+              <h3 className="text-[18px] leading-[22px] font-semibold text-white">
+                {entry.role}
+              </h3>
+
+              <p className="text-muted-dark mt-1 text-[14px] leading-[18px] font-medium">
+                {entry.org}
+              </p>
+
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span
                   className={cn(
-                    'mt-2 text-[12px] leading-[15px] font-medium',
+                    'text-[12px] leading-[15px] font-medium',
                     entry.current ? 'text-primary' : 'text-muted-dark'
                   )}
                 >
                   {entry.period}
+                </span>
+                <span
+                  aria-hidden="true"
+                  className="h-[3px] w-[3px] rounded-full bg-white/25"
+                />
+                <span className="text-[10px] leading-[15px] font-semibold text-white/40 uppercase">
+                  {isEducation ? 'Education' : 'Work'}
+                </span>
+              </p>
+
+              {entry.detail && (
+                <p className="text-muted-dark mt-3 text-[13px] leading-[19px] font-normal">
+                  {entry.detail}
                 </p>
-              </div>
-            </div>
+              )}
+            </motion.div>
           </li>
         );
       })}
-    </ol>
+    </motion.ol>
   );
 }

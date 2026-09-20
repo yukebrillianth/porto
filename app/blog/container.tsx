@@ -74,7 +74,7 @@ export default function BlogContainer({
           </SectionTitle>
 
           <p className="text-muted-dark mt-6 max-w-[41rem] text-[18px] leading-[24px]">
-            Notes from the things I actually build — autonomous robots,
+            Notes from the things I actually build - autonomous robots,
             real-time communication, networking and the web stack around them.
             Mostly what broke, and what I changed because of it.
           </p>

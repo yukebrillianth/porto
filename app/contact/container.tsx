@@ -47,10 +47,10 @@ export default function ContactContainer() {
       // Until a mail route exists (e.g. app/api/contact/route.ts + Resend),
       // this hands the message off to the visitor's own mail client so nothing
       // is silently dropped. Replace this block with a real POST when the
-      // endpoint lands — the catch below is already shaped for it.
+      // endpoint lands - the catch below is already shaped for it.
       // ---------------------------------------------------------------------
-      const subject = `Portfolio contact — ${data.name}`;
-      const body = `${data.message}\n\n—\n${data.name}\n${data.email}`;
+      const subject = `Portfolio contact - ${data.name}`;
+      const body = `${data.message}\n\n-\n${data.name}\n${data.email}`;
       const mailto = `mailto:${email}?subject=${encodeURIComponent(
         subject
       )}&body=${encodeURIComponent(body)}`;
@@ -93,7 +93,7 @@ export default function ContactContainer() {
 
             <p className="text-muted-dark mt-6 max-w-[41rem] text-[18px] leading-[24px]">
               I&apos;m always happy to talk about robotics, software systems,
-              distributed systems, AI and product engineering — whether
+              distributed systems, AI and product engineering - whether
               that&apos;s a project you&apos;re building, a problem that
               won&apos;t behave, or a team looking for an engineer who works
               across the stack. Send me a message and I&apos;ll get back to you.
@@ -128,7 +128,7 @@ export default function ContactContainer() {
                     className="focus-visible:ring-primary rounded-[12px] transition after:absolute after:inset-0 hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none"
                   >
                     <span className="sr-only">
-                      {social.platform} — {social.username}
+                      {social.platform} - {social.username}
                     </span>
                   </a>
                 </div>

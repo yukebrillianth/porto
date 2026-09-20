@@ -156,7 +156,7 @@ export async function getPosts(first = 9): Promise<PostSummary[]> {
 }
 
 /**
- * Every post slug — for `generateStaticParams`.
+ * Every post slug - for `generateStaticParams`.
  *
  * @example
  * export async function generateStaticParams() {
@@ -231,7 +231,7 @@ export async function getSeries(): Promise<PostSeries[]> {
 /**
  * Full-text search across the publication's posts.
  *
- * Results are cached like any other read — search terms are part of the fetch
+ * Results are cached like any other read - search terms are part of the fetch
  * cache key, so repeated queries do not burn quota.
  *
  * @example
@@ -248,7 +248,7 @@ export async function searchPosts(
   const publicationId = await getPublicationId();
 
   if (!publicationId) {
-    console.warn('[hashnode] search skipped — publication id unavailable');
+    console.warn('[hashnode] search skipped - publication id unavailable');
     return [];
   }
 

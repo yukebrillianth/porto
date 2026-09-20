@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Contact form contract. Validation copy is English — the site's UI language.
+ * Contact form contract. Validation copy is English - the site's UI language.
  */
 export const contactSchema = z.object({
   name: z
@@ -11,7 +11,7 @@ export const contactSchema = z.object({
   email: z.email({ error: 'Please enter a valid email address.' }),
   message: z
     .string()
-    .min(20, { error: 'A few more words, please — at least 20 characters.' })
+    .min(20, { error: 'A few more words, please - at least 20 characters.' })
     .max(2_000, { error: 'Keep it under 2000 characters.' }),
 });
 

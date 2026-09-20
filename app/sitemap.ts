@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }));
 
   /* ------------------------------------------------------------------ *
-   * TODO: dynamic routes — owned by the CMS services agent.
+   * TODO: dynamic routes - owned by the CMS services agent.
    *
    * Once `lib/hygraph.ts` and `lib/hashnode.ts` expose their list queries,
    * make this function `async` and merge their entries in:
@@ -37,7 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
    *
    *   return [...routes, ...projectRoutes, ...postRoutes];
    *
-   * Keep the CMS reads on the shared ISR window (REVALIDATE_SECONDS) —
+   * Keep the CMS reads on the shared ISR window (REVALIDATE_SECONDS) -
    * never `cache: 'no-store'`.
    * ------------------------------------------------------------------ */
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import { siteConfig } from '@/constants';
 
-/** The brand as it reads in a browser tab — shorter than the full legal name. */
+/** The brand as it reads in a browser tab - shorter than the full legal name. */
 const BRAND = 'Yuke Brilliant';
 
 /** The Twitter/X account that owns this site's cards. */

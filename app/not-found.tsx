@@ -1,7 +1,7 @@
 import { ButtonLink, Eyebrow } from '@/components/ui';
 
 /**
- * The 404 is the one full-bleed page on the site: no bands, no navbar chrome —
+ * The 404 is the one full-bleed page on the site: no bands, no navbar chrome -
  * just the black-hole line field with its two orange accretion streaks, centred
  * under the type. The artwork is decorative, so it stays a CSS background.
  */

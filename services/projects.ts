@@ -114,7 +114,7 @@ export async function getProjects(
 }
 
 /**
- * Every public project slug — for `generateStaticParams`.
+ * Every public project slug - for `generateStaticParams`.
  *
  * @example
  * export async function generateStaticParams() {

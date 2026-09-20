@@ -6,7 +6,7 @@ import { getProjectBySlug, getProjectSlugs } from '@/services/projects';
 
 import ProjectContainer from './container';
 
-// Must be a literal — Next.js statically analyses this value.
+// Must be a literal - Next.js statically analyses this value.
 export const revalidate = 3600;
 
 type ProjectPageProps = {
@@ -21,7 +21,7 @@ export async function generateStaticParams() {
 
 /**
  * `lib/seo.ts` exports a plain helper literally named `generateMetadata`, which
- * would collide with Next's reserved dynamic export — hence the alias.
+ * would collide with Next's reserved dynamic export - hence the alias.
  */
 export async function generateMetadata({
   params,

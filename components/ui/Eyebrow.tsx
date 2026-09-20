@@ -8,7 +8,7 @@ type EyebrowProps = {
 };
 
 /**
- * Section label with the signature outdented orange hairline rule — a 32px line
+ * Section label with the signature outdented orange hairline rule - a 32px line
  * raised to the superscript baseline, sitting 1em before the text.
  *
  * @example

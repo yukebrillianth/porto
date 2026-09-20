@@ -1,8 +1,8 @@
 /**
  * A 10px-wide base64 blur used as the `blurDataURL` for every remote CMS image.
  *
- * The 2022 site pointed `placeholder="blur"` at `/placeholder.jpg` — a full
- * 1990×1150 JPEG — which meant every card downloaded a large image just to show
+ * The 2022 site pointed `placeholder="blur"` at `/placeholder.jpg` - a full
+ * 1990×1150 JPEG - which meant every card downloaded a large image just to show
  * a blur. This inlines ~200 bytes instead, so nothing extra is fetched.
  *
  * @example

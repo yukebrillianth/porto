@@ -2,7 +2,7 @@ import { PT_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
 
 /**
- * Gilroy — the brand face, self-hosted.
+ * Gilroy - the brand face, self-hosted.
  *
  * The 2022 stylesheet registered both Bold and ExtraBold as `font-weight: bold`,
  * which made ExtraBold unreachable. Weights are declared numerically here so the
@@ -63,7 +63,7 @@ export const gilroy = localFont({
 });
 
 /**
- * PT Serif — long-form reading body only (blog posts, project detail prose).
+ * PT Serif - long-form reading body only (blog posts, project detail prose).
  *
  * The 2022 site declared this in CSS but never loaded it, so it silently fell back
  * to a generic serif. Now it is actually loaded.

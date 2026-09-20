@@ -7,13 +7,13 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
 
-    // Hygraph (portfolio projects) — server-only, never NEXT_PUBLIC_.
+    // Hygraph (portfolio projects) - server-only, never NEXT_PUBLIC_.
     // All optional so the site still builds before the CMS is provisioned.
     HYGRAPH_ENDPOINT: z.string().url().optional(),
     HYGRAPH_TOKEN: z.string().optional(),
     HYGRAPH_WEBHOOK_SECRET: z.string().optional(),
 
-    // Hashnode (blog) — the public API needs no token. The publication id is
+    // Hashnode (blog) - the public API needs no token. The publication id is
     // only an optimization: it is looked up from the host when unset.
     HASHNODE_PUBLICATION_ID: z.string().optional(),
 

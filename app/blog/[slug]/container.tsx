@@ -13,7 +13,7 @@ import type { PostDetail } from '@/types/content';
  * reaches `dangerouslySetInnerHTML`.
  *
  * `lib/sanitize.ts` is DOMParser-based and returns `''` on the server, which
- * makes it unusable here — this is a server component and the article must be
+ * makes it unusable here - this is a server component and the article must be
  * in the static HTML for SEO. `isomorphic-dompurify` runs in both environments.
  */
 function sanitize(html: string) {
@@ -27,7 +27,7 @@ function sanitize(html: string) {
 
 /**
  * Wide tables must scroll rather than blow out the reading measure. Hashnode
- * emits bare `<table>`, so each one is wrapped after sanitizing — doing it on
+ * emits bare `<table>`, so each one is wrapped after sanitizing - doing it on
  * the clean HTML means the markup we inject here is our own.
  */
 function wrapTables(html: string) {
@@ -49,8 +49,8 @@ function formatDate(iso: string) {
 }
 
 /**
- * Article body styling. This is the one place PT Serif appears — 20px body copy
- * with generous leading — while headings snap back to Gilroy.
+ * Article body styling. This is the one place PT Serif appears - 20px body copy
+ * with generous leading - while headings snap back to Gilroy.
  */
 const proseClasses = [
   'font-serif text-[20px] leading-[34px] text-dark',
@@ -124,7 +124,7 @@ export default function PostContainer({ post }: PostContainerProps) {
       <Section tone="light">
         <SectionInner>
           <article className={`mx-auto max-w-3xl ${proseClasses}`}>
-            {/* Sanitized above with isomorphic-dompurify — never render raw CMS HTML. */}
+            {/* Sanitized above with isomorphic-dompurify - never render raw CMS HTML. */}
             <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
           </article>
         </SectionInner>
