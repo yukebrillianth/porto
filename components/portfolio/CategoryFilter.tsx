@@ -1,58 +1,72 @@
-'use client';
+import Link from 'next/link';
 
 import { portfolioCategories } from '@/constants';
 import { cn } from '@/lib/cn';
 
 type CategoryFilterProps = {
-  /** The `value` of the currently selected category, e.g. `'all'`. */
   active: string;
-  onSelect: (value: string) => void;
+  query?: string;
   className?: string;
 };
 
 /**
- * The signature inverted chip row. Inactive chips are transparent with white
- * text; the active one flips to `bg-white text-dark`. Chips sit two-up on
- * mobile (`w-[45%]`) and shrink to their content from `lg` up.
- *
- * The row is full width and `justify-between` on mobile so the two-up chips
- * align to both gutters, then collapses to its content and centres from `md`,
- * matching the 2022 `w-full md:w-auto` MenuWrapper.
+ * The 2022 series/tab chip: a `#101010` inset pill whose 1px border is a gradient
+ * hairline, painted with the double-background trick. Matches SeriesPills on /blog.
  */
+const hairlineFill = {
+  background: [
+    'linear-gradient(var(--color-surface-deep), var(--color-surface-deep)) padding-box',
+    'linear-gradient(48deg, hsla(0, 0%, 100%, 0.12), hsla(0, 0%, 100%, 0.2)) border-box',
+  ].join(', '),
+  border: '1px solid transparent',
+  boxShadow: '75px -24px 128px rgba(0, 0, 0, 0.6)',
+} as const;
+
+const pillBase =
+  'inline-block rounded-full px-5 py-2 text-sm font-semibold backdrop-blur-[30px] transition hover:opacity-70 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none';
+
+function buildHref(category: string, query?: string) {
+  const params = new URLSearchParams();
+
+  if (query) params.set('q', query);
+  if (category && category !== 'all') params.set('category', category);
+
+  const search = params.toString();
+  return search ? `/projects?${search}` : '/projects';
+}
+
 export function CategoryFilter({
   active,
-  onSelect,
+  query,
   className,
 }: CategoryFilterProps) {
   return (
-    <div
+    <nav
       role="group"
       aria-label="Filter projects by category"
-      className={cn(
-        'flex w-full flex-wrap justify-between gap-[25px] md:w-auto md:justify-center',
-        className
-      )}
+      className={className}
     >
-      {portfolioCategories.map((category) => {
-        const isActive = category.value === active;
+      <ul className="flex flex-wrap items-center justify-center gap-3">
+        {portfolioCategories.map((category) => {
+          const isActive = category.value === active;
 
-        return (
-          <button
-            key={category.value}
-            type="button"
-            aria-pressed={isActive}
-            onClick={() => onSelect(category.value)}
-            className={cn(
-              'focus-visible:ring-primary focus-visible:ring-offset-dark w-[45%] rounded px-6 py-3 text-[16px] font-semibold transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none md:rounded-full lg:w-auto',
-              isActive
-                ? 'text-dark bg-white'
-                : 'bg-transparent text-white hover:opacity-70'
-            )}
-          >
-            {category.label}
-          </button>
-        );
-      })}
-    </div>
+          return (
+            <li key={category.value}>
+              <Link
+                href={buildHref(category.value, query)}
+                aria-current={isActive ? 'page' : undefined}
+                className={cn(
+                  pillBase,
+                  isActive ? 'text-dark bg-white' : 'text-white'
+                )}
+                style={isActive ? undefined : hairlineFill}
+              >
+                {category.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }

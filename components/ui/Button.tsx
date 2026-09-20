@@ -7,10 +7,8 @@ import { cn } from '@/lib/cn';
 type ButtonVariant = 'primary' | 'ghost' | 'inverted';
 
 const variants: Record<ButtonVariant, string> = {
-  /** The signature glow pill. The shadow value is not negotiable. */
   primary: 'bg-primary text-white shadow-glow hover:opacity-70',
   ghost: 'border border-white/20 text-white hover:bg-white/5',
-  /** Inverted chip - white on black. Used for active filter states. */
   inverted: 'bg-white text-dark hover:opacity-70',
 };
 

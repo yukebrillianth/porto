@@ -5,6 +5,16 @@
  * instead.
  */
 
+/** A Ghost author included on a post response. */
+export interface GhostAuthor {
+  id: string;
+  name: string;
+  slug: string;
+  profile_image?: string | null;
+  bio?: string | null;
+  website?: string | null;
+}
+
 /** A Ghost tag, as returned by `/tags/` or by `include=tags` on a post. */
 export interface GhostTag {
   id: string;
@@ -29,12 +39,24 @@ export interface GhostPost {
   published_at: string | null;
   updated_at?: string | null;
   created_at?: string | null;
+  authors?: GhostAuthor[];
+  primary_author?: GhostAuthor | null;
   excerpt?: string | null;
   custom_excerpt?: string | null;
   canonical_url?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  og_image?: string | null;
+  og_title?: string | null;
+  og_description?: string | null;
+  twitter_image?: string | null;
+  twitter_title?: string | null;
+  twitter_description?: string | null;
   reading_time?: number | null;
   tags?: GhostTag[];
   primary_tag?: GhostTag | null;
+  /** Ghost has no built-in translation relation; internal tags drive language. */
+  language?: string | null;
   url?: string;
 }
 

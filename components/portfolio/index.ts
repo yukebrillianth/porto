@@ -4,5 +4,6 @@
  */
 
 export { CategoryFilter } from './CategoryFilter';
+export { Pagination } from './Pagination';
 export { ProjectCard, ProjectCardSkeleton } from './ProjectCard';
 export { ProjectGallery } from './ProjectGallery';

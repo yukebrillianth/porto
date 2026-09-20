@@ -6,15 +6,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+import { AnimatePresence, motion } from 'motion/react';
+
 import { ButtonLink } from '@/components/ui';
 import { navLinks } from '@/constants';
 import { cn } from '@/lib/cn';
 
-/**
- * The hamburger from the 2022 original. Its character comes from the
- * deliberately short bar (`M31 16H13`) breaking the rhythm of the two
- * full-width rules - stroke-width 2, round caps, on a 32x32 box.
- */
 function MenuIcon() {
   return (
     <svg
@@ -25,11 +22,12 @@ function MenuIcon() {
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M31 8H1" />
       <path d="M31 16H13" />
-      <path d="M31 24H1" />
+      <path d="M31 26.6001H1" />
+      <path d="M31 5.3999H1" />
     </svg>
   );
 }
@@ -52,19 +50,12 @@ function CloseIcon() {
   );
 }
 
-/** Home only matches exactly; every other route also owns its children. */
 function isActiveHref(href: string, pathname: string) {
   return href === '/' ? pathname === '/' : pathname.startsWith(href);
 }
 
 type NavbarProps = {
   className?: string;
-  /**
-   * Paint the dark grid behind the nav. Only for pages where the nav is the
-   * topmost element on bare canvas. When it sits inside a `<Section>` the
-   * default of `false` lets that section's own grid and glow show through -
-   * an opaque nav would otherwise clip the orb, as it did on /blog.
-   */
   solid?: boolean;
 };
 
@@ -74,16 +65,14 @@ export function Navbar({ className, solid = false }: NavbarProps) {
   const menuId = useId();
 
   return (
-    <nav
+    <header
       className={cn(
-        'relative z-20 px-[28px] py-[28px] md:py-[50px]',
-        // The background goes on the full-width wrapper while the content
-        // stays constrained by the inner container.
+        'relative z-50 px-[28px] py-[28px] md:py-[50px]',
         solid && 'grid-bg-dark bg-dark',
         className
       )}
     >
-      <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div className="relative container mx-auto flex flex-wrap items-center justify-between gap-4">
         <Link
           href="/"
           className="focus-visible:ring-primary rounded focus-visible:ring-2 focus-visible:outline-none"
@@ -92,14 +81,43 @@ export function Navbar({ className, solid = false }: NavbarProps) {
           <Image
             src="/logo.svg"
             alt="Yuke Brilliant"
-            width={89}
-            height={25}
+            width={90}
+            height={48}
             priority
             className="h-auto w-[90px]"
           />
         </Link>
 
-        <div className="flex items-center gap-2 md:order-2">
+        {/* Desktop nav centered */}
+        <nav
+          aria-label="Main navigation"
+          className="hidden md:absolute md:left-1/2 md:block md:-translate-x-1/2"
+        >
+          <ul className="flex items-center space-x-16">
+            {navLinks.map((link) => {
+              const active = isActiveHref(link.href, pathname);
+
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'block py-1 text-sm font-medium tracking-wide uppercase transition',
+                      'focus-visible:ring-primary hover:text-primary focus-visible:ring-2 focus-visible:outline-none',
+                      active ? 'text-primary' : 'text-white'
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Right side: desktop CTA and mobile trigger */}
+        <div className="flex items-center gap-4">
           <div className="hidden md:block">
             <ButtonLink href="/contact">Let&apos;s Talk</ButtonLink>
           </div>
@@ -110,49 +128,61 @@ export function Navbar({ className, solid = false }: NavbarProps) {
             aria-expanded={isOpen}
             aria-controls={menuId}
             aria-label={isOpen ? 'Close main menu' : 'Open main menu'}
-            className="focus-visible:ring-primary rounded p-1 text-white transition hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none md:hidden"
+            className="focus-visible:ring-primary p-1 text-white transition hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none md:hidden"
           >
             {isOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
 
-        <div
-          id={menuId}
-          className={cn(
-            'w-full md:order-1 md:block md:w-auto',
-            isOpen ? 'block' : 'hidden'
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.nav
+              id={menuId}
+              aria-label="Mobile navigation"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="w-full overflow-hidden md:hidden"
+            >
+              <ul className="mt-6 flex flex-col gap-1 font-medium">
+                {navLinks.map((link) => {
+                  const active = isActiveHref(link.href, pathname);
+
+                  return (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        onClick={() => setIsOpen(false)}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'block py-2.5 text-[16px] font-semibold tracking-wide uppercase transition',
+                          active
+                            ? 'text-primary'
+                            : 'hover:text-primary text-white'
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="mt-4 mb-2">
+                <ButtonLink
+                  href="/contact"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full justify-center text-center text-[18px]"
+                >
+                  Let&apos;s Talk
+                </ButtonLink>
+              </div>
+            </motion.nav>
           )}
-        >
-          <ul className="mt-4 flex flex-col md:mt-0 md:flex-row md:items-center md:gap-2">
-            {navLinks.map((link) => {
-              const active = isActiveHref(link.href, pathname);
-
-              return (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={() => setIsOpen(false)}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'block rounded py-2 pr-4 pl-3 font-medium transition md:text-sm',
-                      'focus-visible:ring-primary hover:opacity-70 focus-visible:ring-2 focus-visible:outline-none',
-                      active ? 'text-primary' : 'text-white'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              );
-            })}
-
-            <li className="mt-2 pl-3 md:hidden">
-              <ButtonLink href="/contact" onClick={() => setIsOpen(false)}>
-                Let&apos;s Talk
-              </ButtonLink>
-            </li>
-          </ul>
-        </div>
+        </AnimatePresence>
       </div>
-    </nav>
+    </header>
   );
 }

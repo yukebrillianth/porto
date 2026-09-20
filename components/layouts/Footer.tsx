@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { footerLinks } from '@/constants';
 import { cn } from '@/lib/cn';
 
-/** The three tools the site credits, each with a 16px mark. */
 const credits = [
   {
     label: 'Designed with',
@@ -27,10 +26,6 @@ const credits = [
 ] as const;
 
 type FooterProps = {
-  /**
-   * Drops the grid background and `bg-dark` so the footer can sit inside a
-   * section that is already dark - mirrors the 2022 `<Footer light />` API.
-   */
   light?: boolean;
   className?: string;
 };

@@ -25,7 +25,7 @@ export const siteConfig = {
 
 export const navLinks = [
   { href: '/', label: 'HOME' },
-  { href: '/portfolio', label: 'PORTFOLIO' },
+  { href: '/projects', label: 'PROJECTS' },
   { href: '/blog', label: 'BLOG' },
   { href: '/contact', label: 'CONTACT' },
 ] as const;
@@ -35,7 +35,7 @@ export type NavLink = (typeof navLinks)[number];
 export const footerLinks = [
   { href: '/#about', label: 'About' },
   { href: '/contact', label: 'Contact' },
-  { href: '/portfolio', label: 'Portfolio' },
+  { href: '/projects', label: 'Projects' },
   { href: '/blog', label: 'Blog' },
 ] as const;
 
@@ -209,11 +209,15 @@ export const timeline = [
 
 export type TimelineEntry = (typeof timeline)[number];
 
+/** Mirrors the `PortfolioCategory` enum in Hygraph. */
 export const portfolioCategories = [
   { label: 'All', value: 'all' },
   { label: 'Website', value: 'Website' },
   { label: 'Mobile', value: 'Mobile' },
   { label: 'Robotics', value: 'Robotics' },
+  { label: 'Systems', value: 'Systems' },
+  { label: 'Embedded', value: 'Embedded' },
+  { label: 'Design', value: 'Design' },
 ] as const;
 
 /** ISR window for CMS reads - long, to stay inside free-tier quotas. */

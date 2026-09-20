@@ -1,45 +1,70 @@
 import type { MetadataRoute } from 'next';
 
 import { siteConfig } from '@/constants';
+import { getPosts } from '@/services/posts';
+import { getProjects } from '@/services/projects';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = ['', '/portfolio', '/blog', '/contact'].map((route) => ({
-    url: `${siteConfig.url}${route}`,
-    lastModified: new Date().toISOString().split('T')[0],
-    changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1 : 0.8,
+function safeDate(value?: string | null): Date {
+  if (!value) return new Date();
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+/**
+ * Dynamic canonical sitemap. Ghost is the private CMS origin, so only the
+ * public Next.js URLs are emitted here.
+ */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [posts, projects] = await Promise.all([getPosts(100), getProjects()]);
+
+  const latestPostDate = posts[0]?.updatedAt
+    ? safeDate(posts[0].updatedAt)
+    : new Date();
+  const latestProjectDate = projects[0]?.updatedAt
+    ? safeDate(projects[0].updatedAt)
+    : new Date();
+
+  const staticRoutes: MetadataRoute.Sitemap = [
+    {
+      url: siteConfig.url,
+      lastModified:
+        latestPostDate > latestProjectDate ? latestPostDate : latestProjectDate,
+      changeFrequency: 'weekly',
+      priority: 1,
+    },
+    {
+      url: `${siteConfig.url}/projects`,
+      lastModified: latestProjectDate,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    },
+    {
+      url: `${siteConfig.url}/blog`,
+      lastModified: latestPostDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${siteConfig.url}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
+  ];
+
+  const projectRoutes: MetadataRoute.Sitemap = projects.map((project) => ({
+    url: `${siteConfig.url}/projects/${project.slug}`,
+    lastModified: safeDate(project.updatedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
   }));
 
-  /* ------------------------------------------------------------------ *
-   * TODO: dynamic routes - owned by the CMS services agent.
-   *
-   * Once `lib/hygraph.ts` and `lib/ghost.ts` expose their list queries,
-   * make this function `async` and merge their entries in:
-   *
-   *   const [projects, posts] = await Promise.all([
-   *     getProjects(),
-   *     getPosts(),
-   *   ]);
-   *
-   *   const projectRoutes = projects.map((project) => ({
-   *     url: `${siteConfig.url}/portfolio/${project.slug}`,
-   *     lastModified: project.updatedAt,
-   *     changeFrequency: 'monthly' as const,
-   *     priority: 0.7,
-   *   }));
-   *
-   *   const postRoutes = posts.map((post) => ({
-   *     url: `${siteConfig.url}/blog/${post.slug}`,
-   *     lastModified: post.updatedAt,
-   *     changeFrequency: 'monthly' as const,
-   *     priority: 0.6,
-   *   }));
-   *
-   *   return [...routes, ...projectRoutes, ...postRoutes];
-   *
-   * Keep the CMS reads on the shared ISR window (REVALIDATE_SECONDS) -
-   * never `cache: 'no-store'`.
-   * ------------------------------------------------------------------ */
+  const postRoutes: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${siteConfig.url}/blog/${post.slug}`,
+    lastModified: safeDate(post.updatedAt || post.publishedAt),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
 
-  return [...routes];
+  return [...staticRoutes, ...projectRoutes, ...postRoutes];
 }

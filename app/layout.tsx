@@ -1,10 +1,16 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 
 import { gilroy, ptSerif } from '@/app/fonts';
 import { defaultMetadata } from '@/lib/seo';
 import { ToastProvider } from '@/providers/ToastProvider';
 
 import './globals.css';
+
+export const viewport: Viewport = {
+  themeColor: '#121212',
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = defaultMetadata;
 

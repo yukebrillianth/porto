@@ -1,6 +1,12 @@
 import { siteConfig } from '@/constants';
 import { ghostFetch, postTags } from '@/lib/ghost';
-import type { PostDetail, PostSeries, PostSummary } from '@/types/content';
+import type {
+  PostDetail,
+  PostLanguage,
+  PostSeries,
+  PostSummary,
+  PostTranslation,
+} from '@/types/content';
 import type {
   GhostPost,
   GhostPostsResponse,
@@ -14,9 +20,14 @@ const SUMMARY_FIELDS = [
   'slug',
   'title',
   'feature_image',
+  'feature_image_alt',
   'published_at',
+  'updated_at',
   'excerpt',
   'custom_excerpt',
+  'meta_title',
+  'meta_description',
+  'og_image',
 ].join(',');
 
 /** Newest first, matching the previous blog feed order. */
@@ -45,6 +56,60 @@ function toSeries(tag: GhostTag | null | undefined): PostSeries | null {
   return { name: tag.name, slug: tag.slug };
 }
 
+function toLanguage(post: GhostPost): PostLanguage {
+  const hasEnTag = post.tags?.some((tag) =>
+    /^(lang-en|en|#en)$/i.test(tag.slug)
+  );
+  if (hasEnTag) return 'en';
+
+  const hasIdTag = post.tags?.some((tag) =>
+    /^(lang-id|id|#id)$/i.test(tag.slug)
+  );
+  if (hasIdTag) return 'id';
+
+  if (post.slug.endsWith('-en')) return 'en';
+
+  return 'id';
+}
+
+async function resolveTranslations(
+  post: GhostPost
+): Promise<PostTranslation[]> {
+  const currentLang = toLanguage(post);
+  const translations: PostTranslation[] = [
+    { language: currentLang, slug: post.slug, title: post.title },
+  ];
+
+  const candidateSlug =
+    currentLang === 'en' ? post.slug.replace(/-en$/, '') : `${post.slug}-en`;
+
+  if (candidateSlug !== post.slug) {
+    try {
+      const partnerData = await ghostFetch<GhostPostsResponse>(
+        `posts/slug/${encodeURIComponent(candidateSlug)}`,
+        { fields: 'id,slug,title', include: 'tags' },
+        { tags: [postTags.bySlug(candidateSlug)] }
+      );
+
+      const partner = partnerData?.posts?.[0];
+      if (partner) {
+        const partnerLang = toLanguage(partner);
+        if (partnerLang !== currentLang) {
+          translations.push({
+            language: partnerLang,
+            slug: partner.slug,
+            title: partner.title,
+          });
+        }
+      }
+    } catch {
+      // Partner translation does not exist yet.
+    }
+  }
+
+  return translations;
+}
+
 /** Normalize a Ghost post into the `PostSummary` contract. */
 function toPostSummary(post: GhostPost): PostSummary {
   const primaryTag =
@@ -54,10 +119,42 @@ function toPostSummary(post: GhostPost): PostSummary {
     slug: post.slug,
     title: post.title,
     coverUrl: post.feature_image ?? null,
+    coverAlt: post.feature_image_alt ?? null,
     publishedAt: post.published_at ?? post.created_at ?? '',
+    updatedAt: post.updated_at ?? post.published_at ?? post.created_at ?? '',
     brief: post.custom_excerpt ?? post.excerpt ?? '',
     series: toSeries(primaryTag),
   };
+}
+
+/**
+ * Deduplicate translated pairs so that a post with both Indonesian and English
+ * versions appears once in the main list, with its available languages recorded.
+ */
+function deduplicatePosts(posts: GhostPost[]): PostSummary[] {
+  const allSlugs = new Set(posts.map((post) => post.slug));
+  const summaries: PostSummary[] = [];
+
+  for (const post of posts) {
+    if (post.slug.endsWith('-en')) {
+      const baseSlug = post.slug.replace(/-en$/, '');
+      if (allSlugs.has(baseSlug)) {
+        // Skip separate English card when the base post is in the feed.
+        continue;
+      }
+      const summary = toPostSummary(post);
+      summary.languages = ['en'];
+      summaries.push(summary);
+      continue;
+    }
+
+    const summary = toPostSummary(post);
+    const hasEnglish = allSlugs.has(`${post.slug}-en`);
+    summary.languages = hasEnglish ? ['id', 'en'] : ['id'];
+    summaries.push(summary);
+  }
+
+  return summaries;
 }
 
 /**
@@ -77,13 +174,13 @@ export async function getPosts(first = 9): Promise<PostSummary[]> {
       {
         limit: clampLimit(first),
         order: NEWEST_FIRST,
-        include: 'tags',
+        include: 'tags,authors',
         fields: SUMMARY_FIELDS,
       },
       { tags: [postTags.all] }
     );
 
-    return data?.posts?.map(toPostSummary) ?? [];
+    return data?.posts ? deduplicatePosts(data.posts) : [];
   } catch (error) {
     console.warn('[posts] getPosts failed:', error);
     return [];
@@ -130,7 +227,29 @@ export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
   try {
     const data = await ghostFetch<GhostPostsResponse>(
       `posts/slug/${encodeURIComponent(slug)}`,
-      { include: 'tags', formats: 'html' },
+      {
+        include: 'tags,authors',
+        formats: 'html',
+        fields: [
+          'id',
+          'slug',
+          'title',
+          'html',
+          'feature_image',
+          'feature_image_alt',
+          'published_at',
+          'updated_at',
+          'created_at',
+          'excerpt',
+          'custom_excerpt',
+          'meta_title',
+          'meta_description',
+          'og_image',
+          'twitter_image',
+          'canonical_url',
+          'reading_time',
+        ].join(','),
+      },
       { tags: [postTags.all, postTags.bySlug(slug)] }
     );
 
@@ -141,7 +260,23 @@ export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
     return {
       ...toPostSummary(post),
       contentHtml: post.html ?? '',
+      // Ghost's canonical_url is author-controlled and may point to an old
+      // CMS URL. This site is the canonical publisher for every local post.
       canonicalUrl: `${siteConfig.url}/blog/${slug}`,
+      metaTitle: post.meta_title ?? null,
+      metaDescription: post.meta_description ?? null,
+      ogImage: post.og_image ?? post.feature_image ?? null,
+      twitterImage:
+        post.twitter_image ?? post.og_image ?? post.feature_image ?? null,
+      authors: (
+        post.authors ?? (post.primary_author ? [post.primary_author] : [])
+      ).map((author) => ({
+        name: author.name,
+        slug: author.slug,
+        profileImage: author.profile_image ?? null,
+      })),
+      language: toLanguage(post),
+      translations: await resolveTranslations(post),
       readTimeMinutes: post.reading_time ?? null,
     };
   } catch (error) {
@@ -220,7 +355,7 @@ export async function searchPosts(
       {
         limit: MAX_LIMIT,
         order: NEWEST_FIRST,
-        include: 'tags',
+        include: 'tags,authors',
         fields: SUMMARY_FIELDS,
       },
       { tags: [postTags.all] }
@@ -228,21 +363,20 @@ export async function searchPosts(
 
     const posts = data?.posts ?? [];
 
-    return posts
-      .filter((post) => {
-        const haystack = [
-          post.title,
-          post.custom_excerpt ?? '',
-          post.excerpt ?? '',
-          ...(post.tags?.map((tag) => tag.name) ?? []),
-        ]
-          .join(' ')
-          .toLowerCase();
+    const matched = posts.filter((post) => {
+      const haystack = [
+        post.title,
+        post.custom_excerpt ?? '',
+        post.excerpt ?? '',
+        ...(post.tags?.map((tag) => tag.name) ?? []),
+      ]
+        .join(' ')
+        .toLowerCase();
 
-        return haystack.includes(trimmed);
-      })
-      .slice(0, clampLimit(first))
-      .map(toPostSummary);
+      return haystack.includes(trimmed);
+    });
+
+    return deduplicatePosts(matched).slice(0, clampLimit(first));
   } catch (error) {
     console.warn('[posts] searchPosts failed:', error);
     return [];

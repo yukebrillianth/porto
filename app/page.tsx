@@ -8,8 +8,9 @@ import {
 } from '@/components/home';
 import { Footer, Navbar } from '@/components/layouts';
 import { Section } from '@/components/ui';
+import { websiteJsonLd } from '@/lib/seo';
 import { getPosts } from '@/services/posts';
-import { getProjects } from '@/services/projects';
+import { getFeaturedProjects } from '@/services/projects';
 
 /** ISR - matches REVALIDATE_SECONDS. Next requires a static literal here. */
 export const revalidate = 3600;
@@ -22,10 +23,17 @@ export const revalidate = 3600;
  * → LatestPosts(light) → Footer(dark).
  */
 export default async function Home() {
-  const [projects, posts] = await Promise.all([getProjects(), getPosts(3)]);
+  const [projects, posts] = await Promise.all([
+    getFeaturedProjects(3),
+    getPosts(3),
+  ]);
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+      />
       <Navbar solid />
 
       <main>
@@ -42,7 +50,7 @@ export default async function Home() {
         <Section className="grid-bg-dark bg-dark text-white">
           <Education />
           <Social />
-          <PortfolioPreview projects={projects.slice(0, 8)} />
+          <PortfolioPreview projects={projects} />
         </Section>
 
         <LatestPosts posts={posts} />

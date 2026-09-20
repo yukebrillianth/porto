@@ -2,42 +2,43 @@
 
 import { motion, useReducedMotion, type Variants } from 'motion/react';
 
-import {
-  EASE_DRAW,
-  EASE_OUT,
-  fadeIn,
-  fadeUp,
-  staggerContainer,
-  VIEWPORT,
-} from '@/components/ui/motion';
+import { EASE_OUT, fadeIn, VIEWPORT } from '@/components/ui/motion';
 import type { TimelineEntry } from '@/constants';
 import { cn } from '@/lib/cn';
 
-/**
- * Geometry. The rail sits in a 24px gutter column, the node is a 14px bead
- * centred in it, and the card is padded 24px with a 22px first line - so the
- * node's centre lands at 24 + 11 = 35px, exactly on the card title's baseline
- * box. Change the card padding and these two numbers must move with it.
- */
 const NODE_TOP = 'mt-[28px]';
 const RAIL_TOP = 'top-[35px]';
 
-/** The rail draws itself downward from the first node. */
 const railDraw: Variants = {
   hidden: { scaleY: 0 },
   visible: {
     scaleY: 1,
-    transition: { duration: 1.1, ease: EASE_DRAW },
+    transition: { duration: 0.5, ease: EASE_OUT },
   },
 };
 
-/** Each bead pops onto the rail as its row arrives. */
 const nodePop: Variants = {
   hidden: { opacity: 0, scale: 0 },
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.4, ease: EASE_OUT },
+    transition: { duration: 0.25, ease: EASE_OUT },
+  },
+};
+
+const cardReveal: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.35, ease: EASE_OUT },
+  },
+};
+
+const timelineStagger: Variants = {
+  hidden: {},
+  visible: {
+    transition: { staggerChildren: 0.08 },
   },
 };
 
@@ -46,24 +47,6 @@ type AnimatedTimelineProps = {
   className?: string;
 };
 
-/**
- * The merged education + experience timeline.
- *
- * Single column: one unbroken rail down the left, every card to its right.
- * The previous version used a 3-column alternating zig-zag whose connector was
- * rebuilt per row, which left visible seams between segments and stranded the
- * node dots in empty space. Here the rail is a *single* element spanning the
- * whole list, so it physically cannot break, and each bead is centred in the
- * same gutter column the rail runs through.
- *
- * `kind` is carried by the bead: work is a solid disc, education is a hollow
- * ring. `current` colours it `primary`; past entries are white. Every bead
- * wears a soft ring so it reads as threaded onto the rail rather than laid
- * beside it.
- *
- * The rail draws downward on scroll into view and the rows stagger in behind
- * it. Under `prefers-reduced-motion` all three collapse to a plain cross-fade.
- */
 export function AnimatedTimeline({
   entries,
   className,
@@ -72,21 +55,16 @@ export function AnimatedTimeline({
 
   const railVariants = shouldReduceMotion ? fadeIn : railDraw;
   const nodeVariants = shouldReduceMotion ? fadeIn : nodePop;
-  const cardVariants = shouldReduceMotion ? fadeIn : fadeUp;
+  const cardVariants = shouldReduceMotion ? fadeIn : cardReveal;
 
   return (
     <motion.ol
-      variants={staggerContainer}
+      variants={timelineStagger}
       initial="hidden"
       whileInView="visible"
       viewport={VIEWPORT}
       className={cn('relative w-full', className)}
     >
-      {/*
-        One rail for the whole list. It starts on the first bead and fades out
-        below the last one, so the line is continuous between every node
-        without needing to measure the final card's height.
-      */}
       <motion.span
         aria-hidden="true"
         variants={railVariants}
@@ -110,7 +88,6 @@ export function AnimatedTimeline({
               !isLast && 'pb-8 md:pb-10'
             )}
           >
-            {/* The bead, centred on the rail and level with the card title. */}
             <div aria-hidden="true" className="flex justify-center">
               <motion.span
                 variants={nodeVariants}

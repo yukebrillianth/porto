@@ -7,7 +7,14 @@ import { env } from '@/lib/env';
  * version the integration understands - `v5.0` is honoured by every current
  * self-hosted release, including 6.x.
  */
-const GHOST_API_VERSION = 'v5.0';
+const GHOST_API_VERSION = 'v6.0';
+
+/** Public Ghost asset paths used by Koenig cards on the headless frontend. */
+export function ghostPublicAsset(path: 'cards.min.css' | 'cards.min.js') {
+  if (!env.GHOST_URL) return null;
+
+  return `${env.GHOST_URL.replace(/\/+$/, '')}/public/${path}`;
+}
 
 /** Query params for a Content API browse or read request. */
 export type GhostParams = Record<string, string | number | undefined>;

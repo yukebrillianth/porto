@@ -19,19 +19,6 @@ import {
 } from '@/components/ui/motion';
 import { socials } from '@/constants';
 
-/**
- * The social band.
- *
- * The 2022 layout stood a rigid two-up grid of 80px slabs next to the text,
- * which left the cards cramped and the row lopsided. This stacks instead: the
- * text block first at the section's measure, then the six accounts as a full
- * 1 / 2 / 3 grid beneath it, matching the column Education uses so the two
- * dark bands share one spine.
- *
- * Each card is a row - icon tile, then platform over username - with the whole
- * surface clickable through a stretched link. Hover lifts the card and lights
- * the icon tile; the arrow slides out on the same cue.
- */
 export function Social() {
   const shouldReduceMotion = useReducedMotion();
 

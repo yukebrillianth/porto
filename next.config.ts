@@ -19,11 +19,30 @@ const nextConfig: NextConfig = {
       // Hygraph - portfolio project media
       { protocol: 'https' as const, hostname: '*.graphassets.com' },
       { protocol: 'https' as const, hostname: 'media.graphassets.com' },
+      { protocol: 'https' as const, hostname: 'static.ghost.org' },
+      { protocol: 'https' as const, hostname: 'images.unsplash.com' },
       // Ghost - blog cover images, served from the instance's /content/images
       ...(ghostHostname
         ? [{ protocol: 'https' as const, hostname: ghostHostname }]
         : []),
+      // Cloudflare R2 - Ghost's public media domain
+      { protocol: 'https' as const, hostname: 'assets.yukebrillianth.my.id' },
     ],
+  },
+
+  async redirects() {
+    return [
+      {
+        source: '/portfolio',
+        destination: '/projects',
+        permanent: true,
+      },
+      {
+        source: '/portfolio/:slug',
+        destination: '/projects/:slug',
+        permanent: true,
+      },
+    ];
   },
 
   async headers() {
@@ -42,8 +61,18 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
+              [
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+                ghostHostname ? `https://${ghostHostname}` : '',
+              ]
+                .filter(Boolean)
+                .join(' '),
+              [
+                "style-src 'self' 'unsafe-inline'",
+                ghostHostname ? `https://${ghostHostname}` : '',
+              ]
+                .filter(Boolean)
+                .join(' '),
               `img-src 'self' data: blob: *`,
               "font-src 'self' data:",
               // CMS reads happen server-side, but keep the endpoints allowed

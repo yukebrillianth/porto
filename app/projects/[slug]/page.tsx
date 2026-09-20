@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { generateMetadata as buildMetadata } from '@/lib/seo';
+import {
+  breadcrumbJsonLd,
+  generateMetadata as buildMetadata,
+  projectJsonLd,
+} from '@/lib/seo';
 import { getProjectBySlug, getProjectSlugs } from '@/services/projects';
 
 import ProjectContainer from './container';
@@ -37,7 +41,7 @@ export async function generateMetadata({
     title: project.title,
     description: project.description,
     image: project.coverUrl,
-    url: `https://yukebrillianth.my.id/portfolio/${project.slug}`,
+    url: `https://yukebrillianth.my.id/projects/${project.slug}`,
     type: 'article',
   });
 }
@@ -48,5 +52,33 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (!project) notFound();
 
-  return <ProjectContainer project={project} />;
+  const url = `https://yukebrillianth.my.id/projects/${project.slug}`;
+  const projectSchema = projectJsonLd({
+    title: project.title,
+    description: project.description,
+    url,
+    image: project.coverUrl,
+    year: project.year,
+    techStack: project.techStack,
+    repoUrl: project.repoUrl,
+  });
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Projects', path: '/projects' },
+    { name: project.title },
+  ]);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(projectSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
+      <ProjectContainer project={project} />
+    </>
+  );
 }

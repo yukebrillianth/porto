@@ -8,15 +8,6 @@ import {
 } from '@/components/ui';
 import { timeline } from '@/constants';
 
-/**
- * Education and experience, merged into one timeline.
- *
- * Stacked rather than split. The old side-by-side row squeezed the timeline
- * into whatever the text block left over, which is what forced the cramped
- * zig-zag in the first place. Text block on top, timeline full measure below,
- * both pinned to the same 860px column so the eyebrow, the heading indent and
- * the rail all line up down the left edge.
- */
 export function Education() {
   return (
     <Section id="education" tone="none">

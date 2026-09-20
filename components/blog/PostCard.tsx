@@ -69,14 +69,27 @@ export function PostCard({ post, priority = false, className }: PostCardProps) {
           </Link>
         </h3>
 
-        {publishedAt && (
-          <time
-            dateTime={post.publishedAt}
-            className="text-muted-light mt-1 block text-[14px] font-semibold"
-          >
-            {publishedAt}
-          </time>
-        )}
+        <div className="mt-1 flex items-center gap-2 text-[14px]">
+          {publishedAt && (
+            <time
+              dateTime={post.publishedAt}
+              className="text-muted-light block font-semibold"
+            >
+              {publishedAt}
+            </time>
+          )}
+
+          {post.languages && post.languages.length > 1 && (
+            <>
+              <span aria-hidden="true" className="text-black/20">
+                ·
+              </span>
+              <span className="rounded-md bg-black/5 px-2 py-0.5 text-[11px] font-bold tracking-wider text-black/60 uppercase">
+                {post.languages.join(' · ')}
+              </span>
+            </>
+          )}
+        </div>
 
         <p className="text-muted-light mt-2 text-base leading-[24px] font-medium">
           {post.brief}

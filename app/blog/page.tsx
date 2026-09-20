@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 
 import { siteConfig } from '@/constants';
-import { generateMetadata as buildMetadata } from '@/lib/seo';
+import {
+  collectionPageJsonLd,
+  generateMetadata as buildMetadata,
+  websiteJsonLd,
+} from '@/lib/seo';
 import { getPosts, getSeries, searchPosts } from '@/services/posts';
 
 import BlogContainer from './container';
@@ -37,12 +41,29 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
     ? posts.filter((post) => post.series?.slug === seriesSlug)
     : posts;
 
+  const collection = collectionPageJsonLd({
+    name: "Yuke's Personal Blog",
+    description:
+      'Notes on robotics, distributed systems, networking and full-stack engineering.',
+    path: '/blog',
+  });
+
   return (
-    <BlogContainer
-      posts={visiblePosts}
-      series={series}
-      query={query}
-      activeSeriesSlug={seriesSlug}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collection) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+      />
+      <BlogContainer
+        posts={visiblePosts}
+        series={series}
+        query={query}
+        activeSeriesSlug={seriesSlug}
+      />
+    </>
   );
 }

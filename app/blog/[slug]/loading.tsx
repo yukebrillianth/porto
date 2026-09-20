@@ -13,8 +13,8 @@ export default function Loading() {
         </SectionInner>
       </Section>
 
-      <Section tone="light">
-        <SectionInner>
+      <Section tone="paper">
+        <SectionInner className="md:py-24">
           <div className="mx-auto max-w-3xl animate-pulse">
             {Array.from({ length: 8 }).map((_, index) => (
               <div

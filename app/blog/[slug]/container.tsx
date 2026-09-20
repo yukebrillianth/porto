@@ -1,10 +1,15 @@
+'use client';
+
 import Image from 'next/image';
+import Link from 'next/link';
+import Script from 'next/script';
 
 import DOMPurify from 'isomorphic-dompurify';
 
-import { SeriesPills } from '@/components/blog';
+import { LanguageToggle, PostShare } from '@/components/blog';
 import { Footer, Navbar } from '@/components/layouts';
 import { GlowOrb, Section, SectionInner } from '@/components/ui';
+import { ghostPublicAsset } from '@/lib/ghost';
 import { BLUR_DATA_URL } from '@/lib/image';
 import type { PostDetail } from '@/types/content';
 
@@ -12,28 +17,88 @@ import type { PostDetail } from '@/types/content';
  * Ghost HTML is third-party content, so it is sanitized before it ever
  * reaches `dangerouslySetInnerHTML`.
  *
- * `lib/sanitize.ts` is DOMParser-based and returns `''` on the server, which
- * makes it unusable here - this is a server component and the article must be
- * in the static HTML for SEO. `isomorphic-dompurify` runs in both environments.
+ * Configured to allow all Ghost Koenig / Lexical cards (toggles, bookmarks,
+ * callouts, galleries, audio/video players) while strictly stripping scripts
+ * and forms.
  */
 function sanitize(html: string) {
   return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ['target', 'rel', 'loading'],
-    FORBID_TAGS: ['style', 'form', 'input', 'button'],
-    FORBID_ATTR: ['style', 'srcset'],
+    USE_PROFILES: { html: true, svg: true },
+    ADD_TAGS: [
+      'audio',
+      'video',
+      'source',
+      'track',
+      'iframe',
+      'button',
+      'input',
+    ],
+    ADD_ATTR: [
+      'target',
+      'rel',
+      'loading',
+      'controls',
+      'poster',
+      'preload',
+      'allow',
+      'allowfullscreen',
+      'frameborder',
+      'style',
+      'srcset',
+      'sizes',
+      'data-kg-toggle',
+      'type',
+      'value',
+      'min',
+      'max',
+      'step',
+      'aria-label',
+      'aria-expanded',
+    ],
+    FORBID_TAGS: ['script', 'form'],
   });
 }
 
-/**
- * Wide tables must scroll rather than blow out the reading measure. Ghost
- * emits bare `<table>`, so each one is wrapped after sanitizing - doing it on
- * the clean HTML means the markup we inject here is our own.
- */
+/** Ghost emits bare tables; wrap them so a wide table scrolls instead of overflowing. */
 function wrapTables(html: string) {
   return html
-    .replace(/<table/g, '<div class="my-8 overflow-x-auto"><table')
+    .replace(
+      /<table/g,
+      '<div class="overflow-x-auto rounded-lg border border-black/8 my-8 shadow-xs"><table'
+    )
     .replace(/<\/table>/g, '</table></div>');
+}
+
+/**
+ * Enhance codeblocks into polished macOS style terminal windows with
+ * language pills and one-click copy.
+ */
+function wrapCodeBlocks(html: string) {
+  return html.replace(
+    /<pre[^>]*><code(?:\s+class="[^"]*language-([^"\s]+)[^"]*")?[^>]*>([\s\S]*?)<\/code><\/pre>/gi,
+    (_match, lang, code) => {
+      const language = (lang || 'code').toLowerCase();
+      const displayLang = language.toUpperCase();
+
+      return `<div class="code-block my-8 overflow-hidden rounded-xl border border-white/10 bg-[#12141a] text-[#f1f5f9] shadow-xl">
+  <div class="code-block-header flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-4 py-2.5">
+    <div class="flex items-center gap-2">
+      <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" aria-hidden="true"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" aria-hidden="true"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-[#27c93f]" aria-hidden="true"></span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="font-mono text-[11px] font-bold tracking-wider text-white/50 uppercase">${displayLang}</span>
+      <button type="button" class="copy-code-btn flex items-center gap-1.5 rounded px-2 py-0.5 text-[11px] font-semibold text-white/60 transition hover:bg-white/10 hover:text-white" data-copy-btn aria-label="Copy code">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+        <span class="copy-label">Copy</span>
+      </button>
+    </div>
+  </div>
+  <pre class="overflow-x-auto p-4 md:p-5 font-mono text-[13px] md:text-[14px] leading-[1.65]"><code class="language-${language}">${code}</code></pre>
+</div>`;
+    }
+  );
 }
 
 function formatDate(iso: string) {
@@ -43,39 +108,16 @@ function formatDate(iso: string) {
 
   return date.toLocaleDateString('en-US', {
     day: 'numeric',
-    month: 'long',
+    month: 'short',
     year: 'numeric',
   });
 }
 
-/**
- * Article body styling. This is the one place PT Serif appears - 20px body copy
- * with generous leading - while headings snap back to Gilroy.
- */
-const proseClasses = [
-  'font-serif text-[20px] leading-[34px] text-dark',
-  // Headings return to the brand face.
-  '[&_h1]:font-sans [&_h1]:text-[34px] [&_h1]:leading-[40px] [&_h1]:font-semibold [&_h1]:mt-12 [&_h1]:mb-4',
-  '[&_h2]:font-sans [&_h2]:text-[30px] [&_h2]:leading-[36px] [&_h2]:font-semibold [&_h2]:mt-12 [&_h2]:mb-4',
-  '[&_h3]:font-sans [&_h3]:text-[24px] [&_h3]:leading-[30px] [&_h3]:font-semibold [&_h3]:mt-10 [&_h3]:mb-3',
-  '[&_h4]:font-sans [&_h4]:text-[20px] [&_h4]:font-semibold [&_h4]:mt-8 [&_h4]:mb-2',
-  '[&_p]:my-6',
-  '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4 [&_a:hover]:opacity-70',
-  '[&_ul]:my-6 [&_ul]:list-disc [&_ul]:pl-7 [&_ol]:my-6 [&_ol]:list-decimal [&_ol]:pl-7 [&_li]:my-2',
-  '[&_strong]:font-bold',
-  '[&_img]:my-8 [&_img]:h-auto [&_img]:w-full [&_img]:rounded-lg',
-  '[&_figure]:my-8 [&_figcaption]:font-sans [&_figcaption]:text-muted-light [&_figcaption]:mt-2 [&_figcaption]:text-center [&_figcaption]:text-sm',
-  '[&_hr]:my-12 [&_hr]:border-black/10',
-  // Blockquote: an orange rule, echoing the eyebrow hairline.
-  '[&_blockquote]:border-primary [&_blockquote]:text-muted-light [&_blockquote]:my-8 [&_blockquote]:border-l-4 [&_blockquote]:pl-6 [&_blockquote]:italic',
-  // Code returns to a monospace stack; `pre` is a dark inset slab.
-  '[&_code]:bg-dark/5 [&_code]:rounded [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[16px]',
-  '[&_pre]:bg-dark [&_pre]:my-8 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-6 [&_pre]:text-[15px] [&_pre]:leading-[24px] [&_pre]:text-white',
-  '[&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit',
-  '[&_table]:font-sans [&_table]:my-8 [&_table]:w-full [&_table]:border-collapse [&_table]:text-base',
-  '[&_th]:border [&_th]:border-black/10 [&_th]:bg-black/[0.03] [&_th]:px-4 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold',
-  '[&_td]:border [&_td]:border-black/10 [&_td]:px-4 [&_td]:py-2',
-].join(' ');
+function authorLabel(post: PostDetail) {
+  return post.authors.length > 0
+    ? post.authors.map((author) => author.name).join(', ')
+    : 'Yuke Brilliant Hestiavin';
+}
 
 type PostContainerProps = {
   post: PostDetail;
@@ -83,50 +125,156 @@ type PostContainerProps = {
 
 export default function PostContainer({ post }: PostContainerProps) {
   const publishedAt = formatDate(post.publishedAt);
-  const cleanHtml = wrapTables(sanitize(post.contentHtml));
+  const cleanHtml = wrapCodeBlocks(wrapTables(sanitize(post.contentHtml)));
+  const author = authorLabel(post);
+  const cardsCss = ghostPublicAsset('cards.min.css');
+  const cardsJs = ghostPublicAsset('cards.min.js');
+  const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://yukebrillianth.my.id'}/blog/${post.slug}`;
+
+  function handleContainerClick(e: React.MouseEvent<HTMLElement>) {
+    const target = e.target as HTMLElement;
+
+    // 1. Copy button handler
+    const copyBtn = target.closest<HTMLButtonElement>('[data-copy-btn]');
+    if (copyBtn) {
+      const frame = copyBtn.closest('.code-block');
+      const code = frame?.querySelector('pre code');
+      if (code) {
+        const text = code.textContent || '';
+        navigator.clipboard.writeText(text);
+        const label = copyBtn.querySelector('.copy-label');
+        if (label) {
+          label.textContent = 'Copied!';
+          window.setTimeout(() => {
+            label.textContent = 'Copy';
+          }, 2_000);
+        }
+      }
+      return;
+    }
+
+    // 2. Ghost Koenig toggle accordion handler fallback
+    const toggleHeading = target.closest<HTMLElement>('.kg-toggle-heading');
+    if (toggleHeading) {
+      const card = toggleHeading.closest<HTMLElement>('.kg-toggle-card');
+      if (card) {
+        const isClosed = card.getAttribute('data-kg-toggle') === 'close';
+        card.setAttribute('data-kg-toggle', isClosed ? 'open' : 'close');
+      }
+    }
+  }
 
   return (
     <>
+      {cardsCss && <link rel="stylesheet" href={cardsCss} />}
+      {cardsJs && <Script src={cardsJs} strategy="afterInteractive" />}
+
       <Section tone="dark">
         <Navbar />
 
         <GlowOrb className="top-[25%] right-[15%]" />
 
-        <SectionInner className="flex flex-col items-center pb-10 text-center md:pb-16">
-          {post.series && (
-            <SeriesPills series={[post.series]} activeSlug={post.series.slug} />
-          )}
+        <SectionInner className="flex flex-col items-center pb-10 md:pb-16">
+          <div className="w-full max-w-4xl">
+            <nav aria-label="Breadcrumb" className="mb-6 text-left">
+              <ol className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-white/50">
+                <li>
+                  <Link href="/" className="transition hover:text-white">
+                    Home
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-white/20">
+                  /
+                </li>
+                <li>
+                  <Link href="/blog" className="transition hover:text-white">
+                    Blog
+                  </Link>
+                </li>
+                <li aria-hidden="true" className="text-white/20">
+                  /
+                </li>
+                <li
+                  className="max-w-[16rem] truncate text-white/80 sm:max-w-md"
+                  aria-current="page"
+                >
+                  {post.title}
+                </li>
+              </ol>
+            </nav>
 
-          <h1 className="mt-6 max-w-4xl text-[34px] leading-[40px] font-semibold text-white md:text-[54px] md:leading-[59px]">
-            {post.title}
-          </h1>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              {post.series ? (
+                <Link
+                  href={`/blog?series=${post.series.slug}`}
+                  className="text-primary rounded-full border border-white/10 bg-white/5 px-3.5 py-1 text-[12px] font-semibold transition hover:border-white/25 hover:bg-white/10"
+                >
+                  {post.series.name}
+                </Link>
+              ) : (
+                <span />
+              )}
+              <LanguageToggle
+                active={post.language}
+                translations={post.translations}
+              />
+            </div>
 
-          <p className="text-muted-dark mt-5 text-[14px] font-semibold">
-            {publishedAt}
-            {post.readTimeMinutes !== null && (
-              <> · {post.readTimeMinutes} min read</>
+            <h1 className="text-left text-[34px] leading-[40px] font-semibold text-white md:text-[48px] md:leading-[54px] lg:text-[54px] lg:leading-[60px]">
+              {post.title}
+            </h1>
+
+            {post.brief && (
+              <p className="text-muted-dark mt-4 text-left text-[17px] leading-[26px] md:text-[19px] md:leading-[28px]">
+                {post.brief}
+              </p>
             )}
-          </p>
 
-          <Image
-            src={post.coverUrl ?? '/placeholder.jpg'}
-            alt={`Cover image for ${post.title}`}
-            width={1000}
-            height={563}
-            priority
-            placeholder="blur"
-            blurDataURL={BLUR_DATA_URL}
-            className="mt-10 h-auto w-full max-w-4xl rounded-lg object-cover"
-          />
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-4 text-[13px] md:text-[14px]">
+              <div className="text-muted-dark flex flex-wrap items-center gap-x-2.5 gap-y-1 font-medium">
+                <span className="font-semibold text-white">{author}</span>
+                <span aria-hidden="true" className="text-white/20">
+                  ·
+                </span>
+                <time dateTime={post.publishedAt}>{publishedAt}</time>
+                {post.readTimeMinutes !== null && (
+                  <>
+                    <span aria-hidden="true" className="text-white/20">
+                      ·
+                    </span>
+                    <span>{post.readTimeMinutes} min read</span>
+                  </>
+                )}
+              </div>
+
+              <PostShare title={post.title} url={publicUrl} />
+            </div>
+
+            {post.coverUrl && (
+              <div className="mt-8 overflow-hidden rounded-2xl border border-white/10">
+                <Image
+                  src={post.coverUrl}
+                  alt={post.coverAlt ?? `Cover image for ${post.title}`}
+                  width={1200}
+                  height={675}
+                  priority
+                  placeholder="blur"
+                  blurDataURL={BLUR_DATA_URL}
+                  className="h-auto w-full object-cover"
+                />
+              </div>
+            )}
+          </div>
         </SectionInner>
       </Section>
 
-      <Section tone="light">
-        <SectionInner>
-          <article className={`mx-auto max-w-3xl ${proseClasses}`}>
-            {/* Sanitized above with isomorphic-dompurify - never render raw CMS HTML. */}
-            <div dangerouslySetInnerHTML={{ __html: cleanHtml }} />
-          </article>
+      <Section tone="paper">
+        <SectionInner className="md:py-24">
+          <article
+            className="prose-content mx-auto max-w-[720px]"
+            dangerouslySetInnerHTML={{ __html: cleanHtml }}
+            onClick={handleContainerClick}
+          />
         </SectionInner>
       </Section>
 

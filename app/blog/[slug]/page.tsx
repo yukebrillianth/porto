@@ -2,7 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { siteConfig } from '@/constants';
-import { generateMetadata as buildMetadata } from '@/lib/seo';
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  generateMetadata as buildMetadata,
+} from '@/lib/seo';
 import { getPostBySlug, getPostSlugs } from '@/services/posts';
 
 import PostContainer from './container';
@@ -31,20 +35,29 @@ export async function generateMetadata({
 
   const url = `${siteConfig.url}/blog/${slug}`;
 
-  return {
-    ...buildMetadata({
-      title: post.title,
-      description: post.brief,
-      image: post.coverUrl ?? siteConfig.ogImage,
-      url,
-      type: 'article',
-      publishedTime: post.publishedAt,
-      authors: [siteConfig.creator],
-    }),
-    // The whole point of self-hosting the blog: authority accrues to this
-    // domain, not to the Ghost instance.
-    alternates: { canonical: url },
+  const alternateLanguages: Record<string, string> = {
+    [post.language]: url,
+    ...Object.fromEntries(
+      post.translations
+        .filter((translation) => translation.slug !== slug)
+        .map((translation) => [
+          translation.language,
+          `${siteConfig.url}/blog/${translation.slug}`,
+        ])
+    ),
   };
+
+  return buildMetadata({
+    title: post.metaTitle ?? post.title,
+    description: post.metaDescription ?? post.brief,
+    image: post.ogImage ?? post.coverUrl ?? siteConfig.ogImage,
+    url,
+    type: 'article',
+    publishedTime: post.publishedAt,
+    modifiedTime: post.updatedAt,
+    authors: post.authors.map((author) => author.name),
+    languages: alternateLanguages,
+  });
 }
 
 export default async function PostPage({ params }: PostPageProps) {
@@ -55,30 +68,24 @@ export default async function PostPage({ params }: PostPageProps) {
 
   const url = `${siteConfig.url}/blog/${slug}`;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    description: post.brief,
-    datePublished: post.publishedAt,
-    image: post.coverUrl
-      ? [post.coverUrl]
-      : [`${siteConfig.url}${siteConfig.ogImage}`],
-    author: {
-      '@type': 'Person',
-      name: siteConfig.creator,
-      url: siteConfig.url,
-    },
-    publisher: {
-      '@type': 'Person',
-      name: siteConfig.creator,
-      url: siteConfig.url,
-    },
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': url,
-    },
-  };
+  const jsonLd = articleJsonLd({
+    title: post.title,
+    description: post.metaDescription ?? post.brief,
+    url,
+    image: post.ogImage ?? post.coverUrl ?? siteConfig.ogImage,
+    publishedAt: post.publishedAt,
+    updatedAt: post.updatedAt,
+    authors: post.authors.map((author) => ({
+      name: author.name,
+      url: `${siteConfig.url}/#about`,
+    })),
+    language: post.language,
+  });
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: post.title },
+  ]);
 
   return (
     <>
@@ -86,6 +93,10 @@ export default async function PostPage({ params }: PostPageProps) {
         type="application/ld+json"
         // Serialized from our own typed object, not from CMS HTML.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       <PostContainer post={post} />
     </>
