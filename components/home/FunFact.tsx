@@ -68,7 +68,11 @@ export function FunFact() {
   return (
     <ParallaxSection offset={-40} sheet="light">
       <Section id="about" tone="light">
-        <GlowOrb className="top-[25%] md:right-[20%]" intensity="bright" />
+        <GlowOrb
+          className="top-[25%] right-0 md:right-[20%]"
+          intensity="bright"
+          size="lg"
+        />
 
         <SectionInner>
           <motion.div

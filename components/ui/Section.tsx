@@ -3,8 +3,16 @@ import type { ElementType, ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 
 type SectionProps = {
-  /** Dark sections are chrome; light sections are for reading content. */
-  tone?: 'dark' | 'light';
+  /**
+   * Dark sections are chrome; light sections are for reading content.
+   *
+   * `none` paints no background at all. Use it for bands that sit inside an
+   * already-dark parent, so the hairline grid runs continuously across them
+   * instead of restarting at every seam. background-size is per element and
+   * steps 400% to cover across breakpoints, so three stacked dark sections
+   * would otherwise show three differently scaled grids.
+   */
+  tone?: 'dark' | 'light' | 'none';
   as?: ElementType;
   id?: string;
   className?: string;
@@ -13,7 +21,7 @@ type SectionProps = {
 
 /**
  * A full-width band with the hairline grid background. The page alternates
- * dark → light → dark → light → footer(dark).
+ * dark, light, dark, light, footer(dark).
  */
 export function Section({
   tone = 'dark',
@@ -26,10 +34,10 @@ export function Section({
     <Tag
       id={id}
       className={cn(
-        'relative overflow-hidden',
-        tone === 'dark'
-          ? 'grid-bg-dark bg-dark text-white'
-          : 'grid-bg-light text-dark bg-white',
+        'relative',
+        tone !== 'none' && 'overflow-hidden',
+        tone === 'dark' && 'grid-bg-dark bg-dark text-white',
+        tone === 'light' && 'grid-bg-light text-dark bg-white',
         className
       )}
     >

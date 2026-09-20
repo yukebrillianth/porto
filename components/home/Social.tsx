@@ -38,8 +38,11 @@ export function Social() {
   const cardVariants = shouldReduceMotion ? fadeIn : fadeUp;
 
   return (
-    <Section id="social">
-      <GlowOrb className="md:bottom-0 md:left-[15%]" />
+    <Section id="social" tone="none">
+      <GlowOrb
+        className="right-0 bottom-[15%] md:right-auto md:bottom-0 md:left-[15%]"
+        size="lg"
+      />
 
       <SectionInner className="pt-0 md:pt-0">
         <ContentBlock className="w-full max-w-[860px]">

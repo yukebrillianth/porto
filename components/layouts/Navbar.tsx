@@ -69,11 +69,14 @@ export function Navbar({ className }: NavbarProps) {
   return (
     <nav
       className={cn(
-        'relative z-20 container mx-auto px-[28px] py-[28px] md:py-[50px]',
+        // The grid runs behind every surface including the nav, so the
+        // background sits on the full-width wrapper while the content is
+        // constrained by the inner container.
+        'grid-bg-dark bg-dark relative z-20 px-[28px] py-[28px] md:py-[50px]',
         className
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="container mx-auto flex flex-wrap items-center justify-between gap-4">
         <Link
           href="/"
           className="focus-visible:ring-primary rounded focus-visible:ring-2 focus-visible:outline-none"

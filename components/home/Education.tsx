@@ -19,8 +19,11 @@ import { timeline } from '@/constants';
  */
 export function Education() {
   return (
-    <Section id="education">
-      <GlowOrb className="md:top-[25%] md:right-[25%]" />
+    <Section id="education" tone="none">
+      <GlowOrb
+        className="top-[15%] right-0 md:top-[25%] md:right-[25%]"
+        size="lg"
+      />
 
       <SectionInner className="md:pb-[70px]">
         <ContentBlock className="w-full max-w-[860px]">

@@ -5,7 +5,6 @@ import { motion } from 'motion/react';
 import { ProjectCard } from '@/components/portfolio';
 import {
   ButtonLink,
-  GlowOrb,
   Section,
   SectionInner,
   SectionTitle,
@@ -29,10 +28,8 @@ export function PortfolioPreview({ projects }: PortfolioPreviewProps) {
   if (projects.length === 0) return null;
 
   return (
-    <Section id="portfolio">
-      <GlowOrb className="top-[35%] right-[10%]" />
-
-      <SectionInner className="justify-between xl:justify-center">
+    <Section id="portfolio" tone="none">
+      <SectionInner className="justify-between px-7 py-16 md:px-7 md:py-16 xl:justify-center 2xl:px-[170px] 2xl:py-32">
         <motion.div
           className="flex w-full flex-col items-center"
           variants={staggerContainer}

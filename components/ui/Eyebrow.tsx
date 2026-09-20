@@ -20,7 +20,9 @@ export function Eyebrow({ children, className }: EyebrowProps) {
       className={cn(
         'block text-[13px] leading-[23px] font-semibold',
         "before:border-primary before:mr-[1em] before:inline-block before:w-[32px] before:align-super before:content-['']",
-        'before:border-t',
+        // The 2022 rule borders all four sides of a zero-height inline block,
+        // which renders as a 2px bar. `border-t` alone gives half that.
+        'before:border',
         className
       )}
     >
