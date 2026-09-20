@@ -58,12 +58,12 @@ function toSeries(tag: GhostTag | null | undefined): PostSeries | null {
 
 function toLanguage(post: GhostPost): PostLanguage {
   const hasEnTag = post.tags?.some((tag) =>
-    /^(lang-en|en|#en)$/i.test(tag.slug)
+    /^(lang-en|lang-en-\d+|en|#en)$/i.test(tag.slug)
   );
   if (hasEnTag) return 'en';
 
   const hasIdTag = post.tags?.some((tag) =>
-    /^(lang-id|id|#id)$/i.test(tag.slug)
+    /^(lang-id|lang-id-\d+|id|#id)$/i.test(tag.slug)
   );
   if (hasIdTag) return 'id';
 

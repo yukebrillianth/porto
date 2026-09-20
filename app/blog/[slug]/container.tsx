@@ -1,63 +1,25 @@
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
 
-import DOMPurify from 'isomorphic-dompurify';
-
-import { CommentSection, LanguageToggle, PostShare } from '@/components/blog';
+import {
+  ArticleBody,
+  CommentSection,
+  LanguageToggle,
+  PostShare,
+  TableOfContents,
+} from '@/components/blog';
 import { Footer, Navbar } from '@/components/layouts';
 import { GlowOrb, Section, SectionInner } from '@/components/ui';
 import { BLUR_DATA_URL } from '@/lib/image';
+import { sanitizeGhostHtml } from '@/lib/sanitize-ghost';
 import type { PostDetail } from '@/types/content';
 
 /**
- * Ghost HTML is third-party content, so it is sanitized before it ever
- * reaches `dangerouslySetInnerHTML`.
- *
- * Configured to allow all Ghost Koenig / Lexical cards (toggles, bookmarks,
- * callouts, galleries, audio/video players) while strictly stripping scripts
- * and forms.
+ * Ghost HTML is sanitized on the server before it reaches the article markup.
+ * The sanitizer lives in a server-only module because the content is already
+ * clean before the client component handles copy buttons and toggles.
  */
-function sanitize(html: string) {
-  return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true, svg: true },
-    ADD_TAGS: [
-      'audio',
-      'video',
-      'source',
-      'track',
-      'iframe',
-      'button',
-      'input',
-    ],
-    ADD_ATTR: [
-      'target',
-      'rel',
-      'loading',
-      'controls',
-      'poster',
-      'preload',
-      'allow',
-      'allowfullscreen',
-      'frameborder',
-      'style',
-      'srcset',
-      'sizes',
-      'data-kg-toggle',
-      'type',
-      'value',
-      'min',
-      'max',
-      'step',
-      'aria-label',
-      'aria-expanded',
-    ],
-    FORBID_TAGS: ['script', 'form'],
-  });
-}
-
 /** Ghost emits bare tables; wrap them so a wide table scrolls instead of overflowing. */
 function wrapTables(html: string) {
   return html
@@ -130,42 +92,11 @@ export default function PostContainer({
   cardsJs,
 }: PostContainerProps) {
   const publishedAt = formatDate(post.publishedAt);
-  const cleanHtml = wrapCodeBlocks(wrapTables(sanitize(post.contentHtml)));
+  const cleanHtml = wrapCodeBlocks(
+    wrapTables(sanitizeGhostHtml(post.contentHtml))
+  );
   const author = authorLabel(post);
   const publicUrl = post.canonicalUrl;
-
-  function handleContainerClick(e: React.MouseEvent<HTMLElement>) {
-    const target = e.target as HTMLElement;
-
-    // 1. Copy button handler
-    const copyBtn = target.closest<HTMLButtonElement>('[data-copy-btn]');
-    if (copyBtn) {
-      const frame = copyBtn.closest('.code-block');
-      const code = frame?.querySelector('pre code');
-      if (code) {
-        const text = code.textContent || '';
-        navigator.clipboard.writeText(text);
-        const label = copyBtn.querySelector('.copy-label');
-        if (label) {
-          label.textContent = 'Copied!';
-          window.setTimeout(() => {
-            label.textContent = 'Copy';
-          }, 2_000);
-        }
-      }
-      return;
-    }
-
-    // 2. Ghost Koenig toggle accordion handler fallback
-    const toggleHeading = target.closest<HTMLElement>('.kg-toggle-heading');
-    if (toggleHeading) {
-      const card = toggleHeading.closest<HTMLElement>('.kg-toggle-card');
-      if (card) {
-        const isClosed = card.getAttribute('data-kg-toggle') === 'close';
-        card.setAttribute('data-kg-toggle', isClosed ? 'open' : 'close');
-      }
-    }
-  }
 
   return (
     <>
@@ -274,11 +205,8 @@ export default function PostContainer({
       <Section tone="paper">
         <SectionInner className="md:py-24">
           <div className="w-full max-w-3xl">
-            <article
-              className="prose-content mx-auto w-full max-w-[720px]"
-              dangerouslySetInnerHTML={{ __html: cleanHtml }}
-              onClick={handleContainerClick}
-            />
+            <TableOfContents html={cleanHtml} />
+            <ArticleBody html={cleanHtml} />
 
             <div className="mx-auto mt-20 w-full max-w-3xl border-t border-black/10 pt-12">
               <CommentSection slug={post.slug} language={post.language} />
