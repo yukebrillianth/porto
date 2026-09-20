@@ -379,6 +379,47 @@
     color: #f1f5f9;
   }
 
+  /* highlight.js token palette for the dark terminal surface. */
+  .prose-content .hljs-keyword,
+  .prose-content .hljs-selector-tag,
+  .prose-content .hljs-literal,
+  .prose-content .hljs-section,
+  .prose-content .hljs-link {
+    color: #ff7ab2;
+  }
+
+  .prose-content .hljs-string,
+  .prose-content .hljs-title,
+  .prose-content .hljs-name,
+  .prose-content .hljs-type,
+  .prose-content .hljs-attribute,
+  .prose-content .hljs-symbol,
+  .prose-content .hljs-bullet,
+  .prose-content .hljs-addition {
+    color: #a7f3d0;
+  }
+
+  .prose-content .hljs-number,
+  .prose-content .hljs-variable,
+  .prose-content .hljs-template-variable,
+  .prose-content .hljs-tag,
+  .prose-content .hljs-regexp {
+    color: #fbbf24;
+  }
+
+  .prose-content .hljs-comment,
+  .prose-content .hljs-quote,
+  .prose-content .hljs-deletion,
+  .prose-content .hljs-meta {
+    color: #94a3b8;
+  }
+
+  .prose-content .hljs-built_in,
+  .prose-content .hljs-class .hljs-title,
+  .prose-content .hljs-function .hljs-title {
+    color: #67e8f9;
+  }
+
   .prose-content .code-block pre {
     margin: 0;
     border-radius: 0;

@@ -11,6 +11,7 @@ import {
 } from '@/components/blog';
 import { Footer, Navbar } from '@/components/layouts';
 import { GlowOrb, Section, SectionInner } from '@/components/ui';
+import { highlightCode } from '@/lib/highlight-code';
 import { BLUR_DATA_URL } from '@/lib/image';
 import { sanitizeGhostHtml } from '@/lib/sanitize-ghost';
 import type { PostDetail } from '@/types/content';
@@ -40,6 +41,7 @@ function wrapCodeBlocks(html: string) {
     (_match, lang, code) => {
       const language = (lang || 'code').toLowerCase();
       const displayLang = language.toUpperCase();
+      const highlightedCode = highlightCode(code, language);
 
       return `<div class="code-block my-8 overflow-hidden rounded-xl border border-white/10 bg-[#12141a] text-[#f1f5f9] shadow-xl">
   <div class="code-block-header flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-4 py-2.5">
@@ -56,7 +58,7 @@ function wrapCodeBlocks(html: string) {
       </button>
     </div>
   </div>
-  <pre class="overflow-x-auto p-4 md:p-5 font-mono text-[13px] md:text-[14px] leading-[1.65]"><code class="language-${language}">${code}</code></pre>
+  <pre class="overflow-x-auto p-4 md:p-5 font-mono text-[13px] md:text-[14px] leading-[1.65]"><code class="language-${language}">${highlightedCode}</code></pre>
 </div>`;
     }
   );
