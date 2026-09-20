@@ -371,6 +371,12 @@
     font-family: var(--font-mono, monospace);
     font-size: 0.875rem;
     line-height: 1.65;
+    white-space: pre;
+  }
+
+  .prose-content pre code[class*='language-'] {
+    display: block;
+    color: #f1f5f9;
   }
 
   .prose-content .code-block pre {
@@ -437,10 +443,14 @@
 
   /* Images and Figures */
   .prose-content figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin: 2.75rem 0;
   }
 
-  .prose-content img {
+  .prose-content figure img {
+    display: block;
     height: auto;
     max-width: 100%;
     border-radius: 0.75rem;
