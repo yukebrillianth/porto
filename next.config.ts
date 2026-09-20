@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https' as const, hostname: '*.graphassets.com' },
       { protocol: 'https' as const, hostname: 'media.graphassets.com' },
       { protocol: 'https' as const, hostname: 'static.ghost.org' },
+      { protocol: 'https' as const, hostname: 'media.giphy.com' },
       { protocol: 'https' as const, hostname: 'images.unsplash.com' },
       // Ghost - blog cover images, served from the instance's /content/images
       ...(ghostHostname
