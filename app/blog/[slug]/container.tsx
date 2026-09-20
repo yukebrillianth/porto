@@ -9,7 +9,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import { LanguageToggle, PostShare } from '@/components/blog';
 import { Footer, Navbar } from '@/components/layouts';
 import { GlowOrb, Section, SectionInner } from '@/components/ui';
-import { ghostPublicAsset } from '@/lib/ghost';
 import { BLUR_DATA_URL } from '@/lib/image';
 import type { PostDetail } from '@/types/content';
 
@@ -121,15 +120,19 @@ function authorLabel(post: PostDetail) {
 
 type PostContainerProps = {
   post: PostDetail;
+  cardsCss?: string | null;
+  cardsJs?: string | null;
 };
 
-export default function PostContainer({ post }: PostContainerProps) {
+export default function PostContainer({
+  post,
+  cardsCss,
+  cardsJs,
+}: PostContainerProps) {
   const publishedAt = formatDate(post.publishedAt);
   const cleanHtml = wrapCodeBlocks(wrapTables(sanitize(post.contentHtml)));
   const author = authorLabel(post);
-  const cardsCss = ghostPublicAsset('cards.min.css');
-  const cardsJs = ghostPublicAsset('cards.min.js');
-  const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://yukebrillianth.my.id'}/blog/${post.slug}`;
+  const publicUrl = post.canonicalUrl;
 
   function handleContainerClick(e: React.MouseEvent<HTMLElement>) {
     const target = e.target as HTMLElement;

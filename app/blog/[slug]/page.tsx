@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { siteConfig } from '@/constants';
+import { ghostPublicAsset } from '@/lib/ghost';
 import {
   articleJsonLd,
   breadcrumbJsonLd,
@@ -87,6 +88,9 @@ export default async function PostPage({ params }: PostPageProps) {
     { name: post.title },
   ]);
 
+  const cardsCss = ghostPublicAsset('cards.min.css');
+  const cardsJs = ghostPublicAsset('cards.min.js');
+
   return (
     <>
       <script
@@ -98,7 +102,7 @@ export default async function PostPage({ params }: PostPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
-      <PostContainer post={post} />
+      <PostContainer post={post} cardsCss={cardsCss} cardsJs={cardsJs} />
     </>
   );
 }
