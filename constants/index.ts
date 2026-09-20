@@ -4,7 +4,11 @@ export const siteConfig = {
   title: 'Yuke Brilliant - Software Engineer, Robotics & Full Stack',
   description:
     'Software Engineer building across full-stack applications, distributed systems, and autonomous robotics. Undergraduate Computer Engineering at ITS Surabaya.',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'https://yukebrillianth.my.id',
+  url:
+    process.env.NEXT_PUBLIC_APP_URL &&
+    !process.env.NEXT_PUBLIC_APP_URL.includes('localhost')
+      ? process.env.NEXT_PUBLIC_APP_URL
+      : 'https://yukebrillianth.my.id',
   ogImage: '/og-image.jpg',
   creator: 'Yuke Brilliant Hestiavin',
   locale: 'en_US',
