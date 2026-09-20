@@ -2,6 +2,8 @@ import { revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { createHmac, timingSafeEqual } from 'node:crypto';
+
 import { env } from '@/lib/env';
 import { postTags } from '@/lib/ghost';
 import { projectTags } from '@/lib/hygraph';
@@ -39,17 +41,31 @@ interface ManualWebhookBody {
 
 type WebhookBody = HygraphWebhookBody & GhostWebhookBody & ManualWebhookBody;
 
-/** Timing-safe-ish comparison to avoid leaking the secret via response time. */
+/** Timing-safe comparison for shared webhook secrets. */
 function secretMatches(provided: string, expected: string): boolean {
-  if (provided.length !== expected.length) return false;
+  const providedBuffer = Buffer.from(provided);
+  const expectedBuffer = Buffer.from(expected);
 
-  let diff = 0;
+  if (providedBuffer.length !== expectedBuffer.length) return false;
 
-  for (let i = 0; i < provided.length; i += 1) {
-    diff |= provided.charCodeAt(i) ^ expected.charCodeAt(i);
-  }
+  return timingSafeEqual(providedBuffer, expectedBuffer);
+}
 
-  return diff === 0;
+/** Verify Ghost's legacy X-Ghost-Signature header. */
+function verifyGhostSignature(
+  signature: string,
+  timestamp: string,
+  body: string,
+  secret: string
+): boolean {
+  const match = signature.match(/^sha256=([a-f0-9]+),\s*t=(\d+)$/i);
+  if (!match || match[2] !== timestamp) return false;
+
+  const expected = createHmac('sha256', secret)
+    .update(`${body}${timestamp}`)
+    .digest('hex');
+
+  return secretMatches(match[1].toLowerCase(), expected);
 }
 
 /** Work out which namespaced tags a payload should invalidate. */
@@ -90,9 +106,10 @@ function resolveTags(body: WebhookBody): string[] {
 /**
  * Revalidation webhook shared by Hygraph and Ghost.
  *
- * Both senders must present the shared secret as `X-Webhook-Secret`; anything
- * else gets a 401. The payload is mapped onto namespaced cache tags so a
- * publish busts exactly one entry plus its collection - never the whole site.
+ * Hygraph uses the shared `X-Webhook-Secret` header. Ghost uses its native
+ * `X-Ghost-Signature` plus `X-Ghost-Request-Timestamp`. The payload is mapped
+ * onto namespaced cache tags so a publish busts exactly one entry plus its
+ * collection - never the whole site.
  *
  * Ghost webhooks are configured under Ghost Admin -> Settings -> Integrations
  * -> Custom integration -> Add webhook, pointing at this route.
@@ -105,20 +122,35 @@ function resolveTags(body: WebhookBody): string[] {
  */
 export async function POST(req: Request) {
   const headerList = await headers();
+  const ghostSignature = headerList.get('x-ghost-signature');
+  const ghostTimestamp = headerList.get('x-ghost-request-timestamp');
+  const ghostSecret = env.GHOST_WEBHOOK_SECRET;
+  const rawBody = await req.text();
   const provided =
     headerList.get('x-webhook-secret') ??
     headerList.get('xwebhooksecret') ??
     headerList.get('authorization')?.replace(/^Bearer\s+/i, '') ??
     '';
 
-  const expected = env.HYGRAPH_WEBHOOK_SECRET ?? env.WEBHOOK_SECRET;
+  const sharedSecret = env.HYGRAPH_WEBHOOK_SECRET ?? env.WEBHOOK_SECRET;
+  const validGhostSignature =
+    Boolean(ghostSecret && ghostSignature && ghostTimestamp) &&
+    verifyGhostSignature(
+      ghostSignature ?? '',
+      ghostTimestamp ?? '',
+      rawBody,
+      ghostSecret ?? ''
+    );
+  const validSharedSecret = Boolean(
+    sharedSecret && provided && secretMatches(provided, sharedSecret)
+  );
 
-  if (!expected || !provided || !secretMatches(provided, expected)) {
+  if (!validGhostSignature && !validSharedSecret) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const body = (await req.json()) as WebhookBody;
+    const body = JSON.parse(rawBody) as WebhookBody;
     const tags = resolveTags(body);
 
     if (tags.length === 0) {

@@ -21,6 +21,8 @@ export const env = createEnv({
 
     // Shared secret for the /api/revalidate webhook.
     WEBHOOK_SECRET: z.string().optional(),
+    // Ghost Admin integration webhook secret, used with X-Ghost-Signature.
+    GHOST_WEBHOOK_SECRET: z.string().optional(),
   },
 
   client: {
@@ -38,6 +40,7 @@ export const env = createEnv({
     GHOST_URL: process.env.GHOST_URL,
     GHOST_CONTENT_KEY: process.env.GHOST_CONTENT_KEY,
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
+    GHOST_WEBHOOK_SECRET: process.env.GHOST_WEBHOOK_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
 
