@@ -105,7 +105,11 @@ function resolveTags(body: WebhookBody): string[] {
  */
 export async function POST(req: Request) {
   const headerList = await headers();
-  const provided = headerList.get('x-webhook-secret') ?? '';
+  const provided =
+    headerList.get('x-webhook-secret') ??
+    headerList.get('xwebhooksecret') ??
+    headerList.get('authorization')?.replace(/^Bearer\s+/i, '') ??
+    '';
 
   const expected = env.HYGRAPH_WEBHOOK_SECRET ?? env.WEBHOOK_SECRET;
 
