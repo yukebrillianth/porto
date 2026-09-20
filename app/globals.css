@@ -1,0 +1,170 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   Design tokens — see docs/design-brief.md
+   Tailwind v4 is CSS-first. Do NOT create a tailwind.config.ts.
+   ========================================================================== */
+
+@theme {
+  /* Core palette — the entire flat-color vocabulary of the site. */
+  --color-dark: #121212;
+  --color-primary: #ff9800;
+  --color-surface: #1d1d1d;
+  --color-surface-deep: #101010;
+  --color-muted-dark: #b8b8b8;
+  --color-muted-light: #575958;
+
+  /* Violet exists only inside gradients and glows — never as a flat fill. */
+  --color-violet: #bb34fa;
+  --color-violet-deep: #b524f9;
+
+  /* Typography */
+  --font-sans: var(--font-gilroy), system-ui, sans-serif;
+  --font-serif: var(--font-pt-serif), Georgia, serif;
+
+  /* The signature orange glow beneath every CTA. */
+  --shadow-glow: 0 4px 20px rgb(255 152 0 / 0.3);
+
+  /* Illustration draw-on easing (easeInQuad), as used in the 2022 SVGs. */
+  --ease-draw: cubic-bezier(0.47, 0, 0.745, 0.715);
+
+  --animate-gradient-pan: gradient-pan 15s ease infinite;
+  --animate-float: float 0.9s linear infinite alternate;
+}
+
+@keyframes gradient-pan {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes draw-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-dark);
+    color: #fff;
+    font-family: var(--font-sans);
+    /* The 2022 site set zero letter-spacing everywhere. Keep it that way. */
+    letter-spacing: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-primary);
+    color: #fff;
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+@utility grid-bg-dark {
+  background-image: url('/backgrounds/grid-dark.svg');
+  background-position: 100%;
+  background-size: 400%;
+
+  @media (width >= 48rem) {
+    background-size: 300%;
+  }
+  @media (width >= 64rem) {
+    background-size: 200%;
+  }
+  @media (width >= 80rem) {
+    background-size: cover;
+  }
+}
+
+@utility grid-bg-light {
+  background-image: url('/backgrounds/grid-light.svg');
+  background-position: 100%;
+  background-size: 400%;
+
+  @media (width >= 48rem) {
+    background-size: 300%;
+  }
+  @media (width >= 64rem) {
+    background-size: 200%;
+  }
+  @media (width >= 80rem) {
+    background-size: cover;
+  }
+}
+
+/** The ambient conic light source. The 0.04deg orange seam is load-bearing. */
+@utility orb {
+  background: conic-gradient(
+    from 180deg at 50% 50%,
+    var(--color-violet-deep) 0deg,
+    var(--color-primary) 0.04deg,
+    var(--color-violet) 360deg
+  );
+  filter: blur(100px);
+}
+
+/** Animated violet→amber sweep across the hero name. */
+@utility text-gradient-pan {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-violet),
+    var(--color-primary),
+    var(--color-violet)
+  );
+  background-size: 200% 200%;
+  background-clip: text;
+  color: transparent;
+  animation: var(--animate-gradient-pan);
+}
+
+/** The signature desktop section measure: 170px side gutters. */
+@utility section-x {
+  padding-inline: 1.75rem;
+
+  @media (width >= 48rem) {
+    padding-inline: 170px;
+  }
+}
+
+/** Desktop-only 80px content indent; the eyebrow label hangs outdented. */
+@utility content-indent {
+  @media (width >= 48rem) {
+    margin-left: 80px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
