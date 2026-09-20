@@ -13,9 +13,11 @@ export const env = createEnv({
     HYGRAPH_TOKEN: z.string().optional(),
     HYGRAPH_WEBHOOK_SECRET: z.string().optional(),
 
-    // Hashnode (blog) - the public API needs no token. The publication id is
-    // only an optimization: it is looked up from the host when unset.
-    HASHNODE_PUBLICATION_ID: z.string().optional(),
+    // Ghost (blog) - self-hosted. Server-only, never NEXT_PUBLIC_.
+    // Both optional so the site still builds before Ghost is provisioned.
+    // Key: Ghost Admin -> Settings -> Integrations -> Custom integration.
+    GHOST_URL: z.string().url().optional(),
+    GHOST_CONTENT_KEY: z.string().optional(),
 
     // Shared secret for the /api/revalidate webhook.
     WEBHOOK_SECRET: z.string().optional(),
@@ -30,7 +32,8 @@ export const env = createEnv({
     HYGRAPH_ENDPOINT: process.env.HYGRAPH_ENDPOINT,
     HYGRAPH_TOKEN: process.env.HYGRAPH_TOKEN,
     HYGRAPH_WEBHOOK_SECRET: process.env.HYGRAPH_WEBHOOK_SECRET,
-    HASHNODE_PUBLICATION_ID: process.env.HASHNODE_PUBLICATION_ID,
+    GHOST_URL: process.env.GHOST_URL,
+    GHOST_CONTENT_KEY: process.env.GHOST_CONTENT_KEY,
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },

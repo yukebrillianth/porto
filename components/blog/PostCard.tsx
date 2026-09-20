@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 import { BLUR_DATA_URL } from '@/lib/image';
 import type { PostSummary } from '@/types/content';
 
-/** Hashnode dates are ISO strings; render them in the site's en-US locale. */
+/** Ghost dates are ISO strings; render them in the site's en-US locale. */
 function formatDate(iso: string) {
   const date = new Date(iso);
 

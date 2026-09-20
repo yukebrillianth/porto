@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { env } from '@/lib/env';
-import { postTags } from '@/lib/hashnode';
+import { postTags } from '@/lib/ghost';
 import { projectTags } from '@/lib/hygraph';
 
 /**
@@ -18,11 +18,16 @@ interface HygraphWebhookBody {
   };
 }
 
-/** Hashnode publication webhook, e.g. `post_published`. */
-interface HashnodeWebhookBody {
-  eventType?: string;
-  data?: {
-    post?: { id?: string; slug?: string };
+/**
+ * Ghost content webhook, configured under Ghost Admin -> Settings ->
+ * Integrations -> Custom integration -> Add webhook (`post.published`,
+ * `post.updated`, `post.deleted`). Ghost nests the resource under
+ * `post.current`, with `post.previous` holding the changed fields only.
+ */
+interface GhostWebhookBody {
+  post?: {
+    current?: { id?: string; slug?: string; status?: string };
+    previous?: { slug?: string };
   };
 }
 
@@ -32,7 +37,7 @@ interface ManualWebhookBody {
   value?: string;
 }
 
-type WebhookBody = HygraphWebhookBody & HashnodeWebhookBody & ManualWebhookBody;
+type WebhookBody = HygraphWebhookBody & GhostWebhookBody & ManualWebhookBody;
 
 /** Timing-safe-ish comparison to avoid leaking the secret via response time. */
 function secretMatches(provided: string, expected: string): boolean {
@@ -54,10 +59,15 @@ function resolveTags(body: WebhookBody): string[] {
     return [body.value];
   }
 
-  // Hashnode: any post_* event.
-  if (body.eventType?.startsWith('post')) {
-    const slug = body.data?.post?.slug;
-    return slug ? [postTags.all, postTags.bySlug(slug)] : [postTags.all];
+  // Ghost: any post.* event. A slug change busts both the old and new entry.
+  if (body.post) {
+    const current = body.post.current?.slug;
+    const previous = body.post.previous?.slug;
+    const slugs = [current, previous].filter((slug): slug is string =>
+      Boolean(slug)
+    );
+
+    return [postTags.all, ...new Set(slugs.map(postTags.bySlug))];
   }
 
   // Hygraph: model name decides the namespace.
@@ -78,11 +88,14 @@ function resolveTags(body: WebhookBody): string[] {
 }
 
 /**
- * Revalidation webhook shared by Hygraph and Hashnode.
+ * Revalidation webhook shared by Hygraph and Ghost.
  *
  * Both senders must present the shared secret as `X-Webhook-Secret`; anything
  * else gets a 401. The payload is mapped onto namespaced cache tags so a
  * publish busts exactly one entry plus its collection - never the whole site.
+ *
+ * Ghost webhooks are configured under Ghost Admin -> Settings -> Integrations
+ * -> Custom integration -> Add webhook, pointing at this route.
  *
  * @example
  * // curl -X POST https://yukebrillianth.my.id/api/revalidate \
@@ -92,10 +105,7 @@ function resolveTags(body: WebhookBody): string[] {
  */
 export async function POST(req: Request) {
   const headerList = await headers();
-  const provided =
-    headerList.get('x-webhook-secret') ??
-    headerList.get('x-hashnode-signature') ??
-    '';
+  const provided = headerList.get('x-webhook-secret') ?? '';
 
   const expected = env.HYGRAPH_WEBHOOK_SECRET ?? env.WEBHOOK_SECRET;
 

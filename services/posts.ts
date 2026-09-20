@@ -1,158 +1,93 @@
-import { REVALIDATE_SECONDS, siteConfig } from '@/constants';
-import {
-  flattenEdges,
-  getPublicationId,
-  HASHNODE_HOST,
-  hashnodeFetch,
-  postTags,
-  type HashnodeConnection,
-} from '@/lib/hashnode';
+import { siteConfig } from '@/constants';
+import { ghostFetch, postTags } from '@/lib/ghost';
 import type { PostDetail, PostSeries, PostSummary } from '@/types/content';
+import type {
+  GhostPost,
+  GhostPostsResponse,
+  GhostTag,
+  GhostTagsResponse,
+} from '@/types/ghost';
 
-/** Raw `Post` node as returned by Hashnode. */
-interface HashnodePost {
-  id: string;
-  slug: string;
-  title: string;
-  coverImage: { url: string } | null;
-  publishedAt: string;
-  brief: string;
-  series: PostSeries | null;
-  content?: { html: string } | null;
-  readTimeInMinutes?: number | null;
-}
+/** Fields every list view needs. Kept tight so responses stay small. */
+const SUMMARY_FIELDS = [
+  'id',
+  'slug',
+  'title',
+  'feature_image',
+  'published_at',
+  'excerpt',
+  'custom_excerpt',
+].join(',');
 
-const POST_FIELDS = /* GraphQL */ `
-  id
-  slug
-  title
-  coverImage {
-    url
-  }
-  publishedAt
-  brief
-  series {
-    name
-    slug
-  }
-`;
-
-const POSTS_QUERY = /* GraphQL */ `
-  query Posts($host: String!, $first: Int!) {
-    publication(host: $host) {
-      posts(first: $first) {
-        edges {
-          node {
-            ${POST_FIELDS}
-          }
-        }
-      }
-    }
-  }
-`;
-
-const POST_SLUGS_QUERY = /* GraphQL */ `
-  query PostSlugs($host: String!, $first: Int!) {
-    publication(host: $host) {
-      posts(first: $first) {
-        edges {
-          node {
-            id
-            slug
-          }
-        }
-      }
-    }
-  }
-`;
-
-const POST_BY_SLUG_QUERY = /* GraphQL */ `
-  query PostBySlug($host: String!, $slug: String!) {
-    publication(host: $host) {
-      post(slug: $slug) {
-        ${POST_FIELDS}
-        readTimeInMinutes
-        content {
-          html
-        }
-      }
-    }
-  }
-`;
-
-const SERIES_QUERY = /* GraphQL */ `
-  query Series($host: String!, $first: Int!) {
-    publication(host: $host) {
-      seriesList(first: $first) {
-        edges {
-          node {
-            name
-            slug
-          }
-        }
-      }
-    }
-  }
-`;
-
-const SEARCH_POSTS_QUERY = /* GraphQL */ `
-  query SearchPosts($first: Int!, $query: String!, $publicationId: ObjectId!) {
-    searchPostsOfPublication(
-      first: $first
-      filter: { query: $query, publicationId: $publicationId }
-    ) {
-      edges {
-        node {
-          ${POST_FIELDS}
-        }
-      }
-    }
-  }
-`;
+/** Newest first, matching the previous blog feed order. */
+const NEWEST_FIRST = 'published_at desc';
 
 /**
- * Hashnode rejects `first` above 20 on its connections, so this is both the
- * page size cap and the ceiling used when enumerating for static generation.
+ * Ceiling for the in-memory search corpus and for slug enumeration. Ghost
+ * accepts `limit=all`, but an explicit cap keeps a runaway publication from
+ * blowing up the ISR payload.
  */
-const MAX_FIRST = 20;
+const MAX_LIMIT = 100;
 
-/** Clamp a caller-supplied page size into Hashnode's accepted range. */
-function clampFirst(first: number): number {
-  return Math.min(Math.max(1, Math.trunc(first)), MAX_FIRST);
+/** Clamp a caller-supplied page size into a sane range. */
+function clampLimit(limit: number): number {
+  return Math.min(Math.max(1, Math.trunc(limit)), MAX_LIMIT);
 }
 
-/** Normalize a Hashnode node into the `PostSummary` contract. */
-function toPostSummary(post: HashnodePost): PostSummary {
+/**
+ * Ghost has no "series" concept, so a post's `primary_tag` stands in for one.
+ * Internal tags (slug prefixed with `hash-`) are Ghost's private metadata and
+ * are never shown to readers.
+ */
+function toSeries(tag: GhostTag | null | undefined): PostSeries | null {
+  if (!tag || tag.slug.startsWith('hash-')) return null;
+
+  return { name: tag.name, slug: tag.slug };
+}
+
+/** Normalize a Ghost post into the `PostSummary` contract. */
+function toPostSummary(post: GhostPost): PostSummary {
+  const primaryTag =
+    post.primary_tag ?? post.tags?.find((tag) => !tag.slug.startsWith('hash-'));
+
   return {
     slug: post.slug,
     title: post.title,
-    coverUrl: post.coverImage?.url ?? null,
-    publishedAt: post.publishedAt,
-    brief: post.brief,
-    series: post.series ?? null,
+    coverUrl: post.feature_image ?? null,
+    publishedAt: post.published_at ?? post.created_at ?? '',
+    brief: post.custom_excerpt ?? post.excerpt ?? '',
+    series: toSeries(primaryTag),
   };
 }
 
 /**
  * Latest published posts, newest first.
  *
- * `first` is clamped to Hashnode's maximum of 20. Returns `[]` when Hashnode
- * is unreachable, so the blog page still renders.
+ * Returns `[]` when Ghost is unreachable or unconfigured, so the blog page
+ * still renders before the CMS exists.
  *
  * @example
  * const posts = await getPosts();
  * const three = await getPosts(3);
  */
 export async function getPosts(first = 9): Promise<PostSummary[]> {
-  const data = await hashnodeFetch<{
-    publication: { posts: HashnodeConnection<HashnodePost> } | null;
-  }>(
-    POSTS_QUERY,
-    { host: HASHNODE_HOST, first: clampFirst(first) },
-    { tags: [postTags.all], revalidate: REVALIDATE_SECONDS }
-  );
+  try {
+    const data = await ghostFetch<GhostPostsResponse>(
+      'posts',
+      {
+        limit: clampLimit(first),
+        order: NEWEST_FIRST,
+        include: 'tags',
+        fields: SUMMARY_FIELDS,
+      },
+      { tags: [postTags.all] }
+    );
 
-  return flattenEdges(data?.publication?.posts).map(toPostSummary);
+    return data?.posts?.map(toPostSummary) ?? [];
+  } catch (error) {
+    console.warn('[posts] getPosts failed:', error);
+    return [];
+  }
 }
 
 /**
@@ -165,74 +100,108 @@ export async function getPosts(first = 9): Promise<PostSummary[]> {
  * }
  */
 export async function getPostSlugs(): Promise<string[]> {
-  const data = await hashnodeFetch<{
-    publication: { posts: HashnodeConnection<{ slug: string }> } | null;
-  }>(
-    POST_SLUGS_QUERY,
-    { host: HASHNODE_HOST, first: MAX_FIRST },
-    { tags: [postTags.all], revalidate: REVALIDATE_SECONDS }
-  );
+  try {
+    const data = await ghostFetch<GhostPostsResponse>(
+      'posts',
+      { limit: MAX_LIMIT, order: NEWEST_FIRST, fields: 'id,slug' },
+      { tags: [postTags.all] }
+    );
 
-  return flattenEdges(data?.publication?.posts).map((post) => post.slug);
+    return data?.posts?.map((post) => post.slug) ?? [];
+  } catch (error) {
+    console.warn('[posts] getPostSlugs failed:', error);
+    return [];
+  }
 }
 
 /**
  * Fetch one post by slug, or `null` when it does not exist.
  *
- * `canonicalUrl` deliberately points at this domain rather than the Hashnode
- * URL, so search authority accrues here instead of `*.hashnode.dev`.
+ * Reads Ghost's `/posts/slug/{slug}/` endpoint. `canonicalUrl` deliberately
+ * points at this domain rather than at the Ghost instance, so search authority
+ * accrues here instead of on the CMS host - the same SEO rule that applied
+ * before the migration.
  *
  * @example
  * const post = await getPostBySlug('building-a-ros-bridge');
- * post?.canonicalUrl; // 'https://…/blog/building-a-ros-bridge'
+ * post?.canonicalUrl; // 'https://yukebrillianth.my.id/blog/building-a-ros-bridge'
  */
 export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
-  const data = await hashnodeFetch<{
-    publication: { post: HashnodePost | null } | null;
-  }>(
-    POST_BY_SLUG_QUERY,
-    { host: HASHNODE_HOST, slug },
-    {
-      tags: [postTags.all, postTags.bySlug(slug)],
-      revalidate: REVALIDATE_SECONDS,
-    }
-  );
+  try {
+    const data = await ghostFetch<GhostPostsResponse>(
+      `posts/slug/${encodeURIComponent(slug)}`,
+      { include: 'tags', formats: 'html' },
+      { tags: [postTags.all, postTags.bySlug(slug)] }
+    );
 
-  const post = data?.publication?.post;
+    const post = data?.posts?.[0];
 
-  if (!post) return null;
+    if (!post) return null;
 
-  return {
-    ...toPostSummary(post),
-    contentHtml: post.content?.html ?? '',
-    canonicalUrl: `${siteConfig.url}/blog/${slug}`,
-    readTimeMinutes: post.readTimeInMinutes ?? null,
-  };
+    return {
+      ...toPostSummary(post),
+      contentHtml: post.html ?? '',
+      canonicalUrl: `${siteConfig.url}/blog/${slug}`,
+      readTimeMinutes: post.reading_time ?? null,
+    };
+  } catch (error) {
+    console.warn(`[posts] getPostBySlug(${slug}) failed:`, error);
+    return null;
+  }
 }
 
 /**
- * All series in the publication, for blog filtering.
+ * All public tags, for blog filtering.
+ *
+ * Ghost has no "series" primitive, so tags are the natural equivalent and are
+ * returned under the existing `PostSeries` type - the UI stays unchanged.
+ * Internal tags (`hash-*`) and tags with no published posts are dropped.
  *
  * @example
  * const series = await getSeries(); // [{ name: 'ROS Notes', slug: 'ros' }]
  */
 export async function getSeries(): Promise<PostSeries[]> {
-  const data = await hashnodeFetch<{
-    publication: { seriesList: HashnodeConnection<PostSeries> } | null;
-  }>(
-    SERIES_QUERY,
-    { host: HASHNODE_HOST, first: MAX_FIRST },
-    { tags: [postTags.all], revalidate: REVALIDATE_SECONDS }
-  );
+  try {
+    const data = await ghostFetch<GhostTagsResponse>(
+      'tags',
+      {
+        limit: MAX_LIMIT,
+        order: 'name asc',
+        filter: 'visibility:public',
+        fields: 'id,name,slug,visibility',
+      },
+      { tags: [postTags.all] }
+    );
 
-  return flattenEdges(data?.publication?.seriesList);
+    return (
+      data?.tags
+        ?.filter((tag) => !tag.slug.startsWith('hash-'))
+        .map((tag) => ({ name: tag.name, slug: tag.slug })) ?? []
+    );
+  } catch (error) {
+    console.warn('[posts] getSeries failed:', error);
+    return [];
+  }
 }
 
 /**
- * Full-text search across the publication's posts.
+ * Search across the blog by title, excerpt, and tag name.
  *
- * Results are cached like any other read - search terms are part of the fetch
- * cache key, so repeated queries do not burn quota.
+ * The Ghost Content API has no full-text search endpoint. The two options are
+ * an NQL `filter` such as `title:~'term'`, or fetching the feed once and
+ * filtering in memory. This uses the in-memory route, deliberately:
+ *
+ * 1. NQL's `~` operator only matches columns Ghost actually stores. `excerpt`
+ *    is derived from the post body at render time, so it is not filterable -
+ *    an NQL search would silently miss any term that appears in the summary
+ *    but not the title.
+ * 2. An NQL query puts the search term in the URL, which makes every distinct
+ *    term its own Next.js fetch-cache entry. Filtering in memory reuses the
+ *    one cached `post` read that the feed already warmed, so search costs no
+ *    extra requests and invalidates on the same webhook.
+ *
+ * This is bounded by `MAX_LIMIT` posts. If the publication ever outgrows that,
+ * swap in Ghost's own `sodo-search` index rather than paginating here.
  *
  * @example
  * const results = await searchPosts('robotics');
@@ -241,24 +210,41 @@ export async function searchPosts(
   query: string,
   first = 9
 ): Promise<PostSummary[]> {
-  const trimmed = query.trim();
+  const trimmed = query.trim().toLowerCase();
 
   if (!trimmed) return [];
 
-  const publicationId = await getPublicationId();
+  try {
+    const data = await ghostFetch<GhostPostsResponse>(
+      'posts',
+      {
+        limit: MAX_LIMIT,
+        order: NEWEST_FIRST,
+        include: 'tags',
+        fields: SUMMARY_FIELDS,
+      },
+      { tags: [postTags.all] }
+    );
 
-  if (!publicationId) {
-    console.warn('[hashnode] search skipped - publication id unavailable');
+    const posts = data?.posts ?? [];
+
+    return posts
+      .filter((post) => {
+        const haystack = [
+          post.title,
+          post.custom_excerpt ?? '',
+          post.excerpt ?? '',
+          ...(post.tags?.map((tag) => tag.name) ?? []),
+        ]
+          .join(' ')
+          .toLowerCase();
+
+        return haystack.includes(trimmed);
+      })
+      .slice(0, clampLimit(first))
+      .map(toPostSummary);
+  } catch (error) {
+    console.warn('[posts] searchPosts failed:', error);
     return [];
   }
-
-  const data = await hashnodeFetch<{
-    searchPostsOfPublication: HashnodeConnection<HashnodePost>;
-  }>(
-    SEARCH_POSTS_QUERY,
-    { first: clampFirst(first), query: trimmed, publicationId },
-    { tags: [postTags.all], revalidate: REVALIDATE_SECONDS }
-  );
-
-  return flattenEdges(data?.searchPostsOfPublication).map(toPostSummary);
 }

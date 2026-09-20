@@ -59,9 +59,16 @@ function isActiveHref(href: string, pathname: string) {
 
 type NavbarProps = {
   className?: string;
+  /**
+   * Paint the dark grid behind the nav. Only for pages where the nav is the
+   * topmost element on bare canvas. When it sits inside a `<Section>` the
+   * default of `false` lets that section's own grid and glow show through -
+   * an opaque nav would otherwise clip the orb, as it did on /blog.
+   */
+  solid?: boolean;
 };
 
-export function Navbar({ className }: NavbarProps) {
+export function Navbar({ className, solid = false }: NavbarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const menuId = useId();
@@ -69,10 +76,10 @@ export function Navbar({ className }: NavbarProps) {
   return (
     <nav
       className={cn(
-        // The grid runs behind every surface including the nav, so the
-        // background sits on the full-width wrapper while the content is
-        // constrained by the inner container.
-        'grid-bg-dark bg-dark relative z-20 px-[28px] py-[28px] md:py-[50px]',
+        'relative z-20 px-[28px] py-[28px] md:py-[50px]',
+        // The background goes on the full-width wrapper while the content
+        // stays constrained by the inner container.
+        solid && 'grid-bg-dark bg-dark',
         className
       )}
     >

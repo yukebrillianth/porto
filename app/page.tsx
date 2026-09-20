@@ -26,7 +26,7 @@ export default async function Home() {
 
   return (
     <>
-      <Navbar />
+      <Navbar solid />
 
       <main>
         <Hero />

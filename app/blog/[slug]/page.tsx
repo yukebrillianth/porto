@@ -42,7 +42,7 @@ export async function generateMetadata({
       authors: [siteConfig.creator],
     }),
     // The whole point of self-hosting the blog: authority accrues to this
-    // domain, not to *.hashnode.dev.
+    // domain, not to the Ghost instance.
     alternates: { canonical: url },
   };
 }

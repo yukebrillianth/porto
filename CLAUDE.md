@@ -62,20 +62,24 @@ Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind **v4** ·
 
 ## Data sources
 
-Two independent CMS backends, each a thin `graphql-request` client in `lib/`:
+Two independent CMS backends, each a thin client in `lib/`:
 
-- **Hygraph** (was GraphCMS) → portfolio projects. Endpoint format
+- **Hygraph** (was GraphCMS) → portfolio projects, via `graphql-request`. Endpoint format
   `https://<region>.cdn.hygraph.com/content/<projectId>/master`. Server-side env only -
   **no `NEXT_PUBLIC_` prefix**, the token must never reach the client bundle.
-- **Hashnode** → blog posts, from publication `yukebrillianth.hashnode.dev`.
+- **Ghost** (self-hosted) → blog posts, via the REST Content API at
+  `{GHOST_URL}/ghost/api/content/`, keyed with `?key={GHOST_CONTENT_KEY}`. Not GraphQL, so
+  it does not use `gqlFetch` - see `lib/ghost.ts`. Ghost has no "series" primitive, so
+  **tags** back the `PostSeries` type. Both env vars are server-side only and optional: an
+  unconfigured or unreachable Ghost degrades to an empty feed rather than failing the build.
 
 **Caching: ISR + cache tags, to stay well inside free-tier quotas.** Use
 `next: { revalidate: 3600, tags: [...] }` and invalidate on publish via the webhook at
 `app/api/revalidate/route.ts`. Never `cache: 'no-store'` on CMS reads.
 
 **SEO:** blog posts render on this domain with `<link rel="canonical">` pointing here, and
-the Hashnode-side canonical points here too - so this domain accrues the authority
-instead of `*.hashnode.dev`.
+the Ghost-side canonical points here too - so this domain accrues the authority instead of
+the CMS host.
 
 ## Commands
 

@@ -147,7 +147,7 @@ const CHIPS: Chip[] = [
     label: 'Robotics Engineer',
     sublabel: 'Building robots',
     Icon: RoboticsIcon,
-    left: `${(500 / 1583) * 100}%`,
+    left: `${(540 / 1583) * 100}%`,
     top: `${(600 / 684) * 100}%`,
     delay: 0.6,
     duration: 3.8,
@@ -156,8 +156,8 @@ const CHIPS: Chip[] = [
     label: 'Network Engineer',
     sublabel: 'Connecting infrastructure',
     Icon: NetworkIcon,
-    left: `${(971 / 1583) * 100}%`,
-    top: `${(530 / 684) * 100}%`,
+    left: `${(900 / 1583) * 100}%`,
+    top: `${(500 / 684) * 100}%`,
     delay: 1.2,
     duration: 3.6,
   },
@@ -182,7 +182,10 @@ export function Hero() {
       };
 
   return (
-    <Section as="div">
+    // The About band below is a parallax sheet that overlaps whatever precedes
+    // it. The padding here is that overlap's landing zone, so the lip rides
+    // over empty canvas instead of slicing across the photo.
+    <Section as="div" className="pb-[72px] md:pb-[96px]">
       <GlowOrb className="top-[15%] left-[12%]" />
 
       <motion.div
@@ -198,6 +201,9 @@ export function Hero() {
         >
           Hi, I&apos;m{' '}
           <span className="text-gradient-pan">Yuke Brilliant Hestiavin.</span>
+          <br className="hidden md:block" />
+          I build software across
+          <br className="hidden md:block" /> the stack &amp; for robots.
         </motion.h1>
 
         <motion.div

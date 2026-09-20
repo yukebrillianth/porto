@@ -10,7 +10,6 @@ export const siteConfig = {
   locale: 'en_US',
   location: 'Surabaya / Sidoarjo, East Java, Indonesia',
   role: 'Software Engineer | Autonomous Robotics | Full Stack Developer',
-  hashnodeHost: 'yukebrillianth.hashnode.dev',
   keywords: [
     'Yuke Brilliant Hestiavin',
     'yukebrillianth',

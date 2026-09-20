@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/cn';
 
 /** How far the sheet overlaps the band above it, in px, per breakpoint. */
-const LIP_OVERLAP = '-mt-[20px] md:-mt-[40px]';
+const LIP_OVERLAP = '-mt-[24px] md:-mt-[48px]';
 
 /**
  * Height of the static safety fill at the bottom of the flow box. It paints
@@ -70,10 +70,17 @@ export function ParallaxSection({
 
   const { scrollYProgress } = useScroll({
     target: ref,
-    offset: ['start end', 'end start'],
+    offset: ['start end', 'start start'],
   });
 
-  const travel = useTransform(scrollYProgress, [0, 1], [0, offset]);
+  /**
+   * The sheet rises into place: it starts `offset` px low and settles at 0 by
+   * the time its top reaches the top of the viewport. Tracking all the way to
+   * `end start` kept moving it after it had covered the viewport, which
+   * dragged the lip up across the section above.
+   */
+  const rise = Math.abs(offset);
+  const travel = useTransform(scrollYProgress, [0, 1], [rise, 0]);
 
   return (
     <div

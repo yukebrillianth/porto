@@ -40,7 +40,7 @@ export function Social() {
   return (
     <Section id="social" tone="none">
       <GlowOrb
-        className="right-0 bottom-[15%] md:right-auto md:bottom-0 md:left-[15%]"
+        className="right-0 bottom-[30%] md:right-auto md:bottom-[20%] md:left-[15%]"
         size="lg"
       />
 

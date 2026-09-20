@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   /* ------------------------------------------------------------------ *
    * TODO: dynamic routes - owned by the CMS services agent.
    *
-   * Once `lib/hygraph.ts` and `lib/hashnode.ts` expose their list queries,
+   * Once `lib/hygraph.ts` and `lib/ghost.ts` expose their list queries,
    * make this function `async` and merge their entries in:
    *
    *   const [projects, posts] = await Promise.all([

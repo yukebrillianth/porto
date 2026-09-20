@@ -95,26 +95,24 @@ export function FunFact() {
                 variants={fadeUp}
                 className="mt-[32px] text-[34px] leading-[34px] font-semibold md:mt-[32px] md:ml-[80px] md:text-[64px] md:leading-[64px]"
               >
-                I build across the whole
+                I build across the
                 <br />
-                stack, from interfaces &amp;
+                whole stack, from
                 <br />
-                APIs to the distributed
+                interfaces &amp; APIs
                 <br />
-                systems that drive robots.
+                to robots.
               </motion.h2>
 
               <motion.p
                 variants={fadeUp}
-                className="text-muted-light mt-[40px] max-w-[720px] text-[18px] leading-[26px] font-normal md:mt-[40px] md:ml-[80px]"
+                className="text-muted-light mt-[40px] max-w-[560px] text-[18px] leading-[26px] font-normal md:mt-[40px] md:ml-[80px]"
               >
-                I started in full-stack web development, building interfaces,
-                APIs and the databases underneath them. Curiosity about robotics
-                took me to IRIS ITS, and that turned into ROS, C++, computer
-                vision and real-time multi-robot communication under conditions
-                where the network is never as good as the demo. I still ship
-                production web software alongside all of it, and each side keeps
-                sharpening the other.
+                I started in full-stack web development, then curiosity about
+                robotics took me to IRIS ITS. That turned into ROS, C++,
+                computer vision and real-time multi-robot communication, under
+                conditions where the network is never as good as the demo. I
+                still ship production web software alongside it.
               </motion.p>
             </ContentBlock>
           </motion.div>

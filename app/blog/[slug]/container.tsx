@@ -9,7 +9,7 @@ import { BLUR_DATA_URL } from '@/lib/image';
 import type { PostDetail } from '@/types/content';
 
 /**
- * Hashnode HTML is third-party content, so it is sanitized before it ever
+ * Ghost HTML is third-party content, so it is sanitized before it ever
  * reaches `dangerouslySetInnerHTML`.
  *
  * `lib/sanitize.ts` is DOMParser-based and returns `''` on the server, which
@@ -26,7 +26,7 @@ function sanitize(html: string) {
 }
 
 /**
- * Wide tables must scroll rather than blow out the reading measure. Hashnode
+ * Wide tables must scroll rather than blow out the reading measure. Ghost
  * emits bare `<table>`, so each one is wrapped after sanitizing - doing it on
  * the clean HTML means the markup we inject here is our own.
  */

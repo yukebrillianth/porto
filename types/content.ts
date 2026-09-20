@@ -40,9 +40,9 @@ export interface PostSummary {
 }
 
 export interface PostDetail extends PostSummary {
-  /** Sanitized HTML from Hashnode. */
+  /** Sanitized HTML from Ghost. */
   contentHtml: string;
-  /** Canonical must point at this domain, never at *.hashnode.dev. */
+  /** Canonical must point at this domain, never at the Ghost instance. */
   canonicalUrl: string;
   readTimeMinutes: number | null;
 }
