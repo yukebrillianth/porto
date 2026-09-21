@@ -42,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated article diagrams (rendered from .claude/skills/article-graphics)
+.claude/artifacts/
