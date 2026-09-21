@@ -36,14 +36,27 @@ type JsonLdContext<T extends Record<string, unknown>> = T & {
 const absoluteUrl = (value: string) =>
   value.startsWith('http') ? value : `${siteConfig.url}${value}`;
 
+/** Stable node ids. Repeating a full object makes Google read one entity as
+ *  several; referencing one id makes the graph collapse onto a single node. */
+const PERSON_ID = `${siteConfig.url}/#person`;
+const WEBSITE_ID = `${siteConfig.url}/#website`;
+
+/** The site as a reference rather than a copy, for `isPartOf`. */
+const webSiteRef = {
+  '@type': 'WebSite',
+  '@id': WEBSITE_ID,
+} as const;
+
 const imageObject = (
   image: string,
-  caption = siteConfig.name
+  caption = siteConfig.name,
+  width = 1200,
+  height = 630
 ): JsonLdImage => ({
   '@type': 'ImageObject',
   url: absoluteUrl(image),
-  width: 1200,
-  height: 630,
+  width,
+  height,
   caption,
 });
 
@@ -52,6 +65,7 @@ const sameAs = socials.map((social) => social.href);
 /** The person and site identity shared by every structured-data document. */
 export const personJsonLd = {
   '@type': 'Person',
+  '@id': PERSON_ID,
   name: siteConfig.name,
   url: siteConfig.url,
   jobTitle: siteConfig.role,
@@ -147,23 +161,27 @@ export function generateMetadata({
   };
 }
 
-/** JSON-LD for the public site's root identity and internal search. */
+/**
+ * JSON-LD for the public site's root identity.
+ *
+ * No `potentialAction`/`SearchAction` here: Google retired the sitelinks
+ * search box on 2024-11-21 and removed its documentation days later, so the
+ * markup no longer renders anything. `WebSite` itself still matters - it is
+ * what feeds the site name shown in results.
+ */
 export function websiteJsonLd(): JsonLdContext<Record<string, unknown>> {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': WEBSITE_ID,
     name: siteConfig.name,
+    alternateName: siteConfig.shortName,
     url: siteConfig.url,
     description: siteConfig.description,
     publisher: personJsonLd,
     image: imageObject(siteConfig.ogImage),
     inLanguage: siteConfig.locale.replace('_', '-'),
     sameAs,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${siteConfig.url}/blog?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 }
 
@@ -185,11 +203,7 @@ export function collectionPageJsonLd({
     name,
     description,
     url,
-    isPartOf: {
-      '@type': 'WebSite',
-      name: siteConfig.name,
-      url: siteConfig.url,
-    },
+    isPartOf: webSiteRef,
     publisher: personJsonLd,
     inLanguage: siteConfig.locale.replace('_', '-'),
   };
@@ -211,6 +225,22 @@ export function breadcrumbJsonLd(
   };
 }
 
+/**
+ * Rough word count from rendered HTML, for `Article.wordCount`.
+ *
+ * Tags are stripped and entities collapsed to a space so that markup does not
+ * inflate the total. The figure is a signal for Google, not a statistic, so
+ * approximate is fine.
+ */
+export function countWords(html: string): number {
+  const text = html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&[a-z]+;|&#\d+;/gi, ' ')
+    .trim();
+
+  return text ? text.split(/\s+/).length : 0;
+}
+
 /** JSON-LD for an individual Ghost post rendered on the public site. */
 export function articleJsonLd({
   title,
@@ -221,6 +251,9 @@ export function articleJsonLd({
   updatedAt,
   authors,
   language,
+  section,
+  readTimeMinutes,
+  wordCount,
 }: {
   title: string;
   description: string;
@@ -230,6 +263,10 @@ export function articleJsonLd({
   updatedAt: string;
   authors: { name: string; url?: string }[];
   language?: string;
+  /** The series a post belongs to, from its Ghost primary tag. */
+  section?: string | null;
+  readTimeMinutes?: number | null;
+  wordCount?: number | null;
 }): JsonLdContext<Record<string, unknown>> {
   return {
     '@context': 'https://schema.org',
@@ -244,17 +281,19 @@ export function articleJsonLd({
       authors.length > 0
         ? authors.map((author) => ({
             '@type': 'Person',
+            // The site owner writing under his own name is the same entity as
+            // the site's Person node, so it carries the same id.
+            ...(author.name === siteConfig.name ? { '@id': PERSON_ID } : {}),
             name: author.name,
             url: author.url ?? siteConfig.url,
           }))
         : [personJsonLd],
     publisher: personJsonLd,
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-    isPartOf: {
-      '@type': 'WebSite',
-      name: siteConfig.name,
-      url: siteConfig.url,
-    },
+    isPartOf: webSiteRef,
+    ...(section ? { articleSection: section } : {}),
+    ...(readTimeMinutes ? { timeRequired: `PT${readTimeMinutes}M` } : {}),
+    ...(wordCount ? { wordCount } : {}),
     inLanguage: language
       ? language === 'en'
         ? 'en-US'
@@ -293,11 +332,7 @@ export function projectJsonLd({
     dateCreated: year ? `${year}-01-01` : undefined,
     programmingLanguage: techStack,
     codeRepository: repoUrl ?? undefined,
-    isPartOf: {
-      '@type': 'WebSite',
-      name: siteConfig.name,
-      url: siteConfig.url,
-    },
+    isPartOf: webSiteRef,
   };
 }
 
