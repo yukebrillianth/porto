@@ -31,6 +31,14 @@ interface GhostWebhookBody {
     current?: { id?: string; slug?: string; status?: string };
     previous?: { slug?: string };
   };
+  /**
+   * `tag.edited` / `tag.deleted`. A tag backs the `PostSeries` type here, so
+   * renaming one changes every card that displays it - bust the collection.
+   */
+  tag?: {
+    current?: { id?: string; slug?: string };
+    previous?: { slug?: string };
+  };
 }
 
 /** Manual/legacy shape: revalidate an explicit tag. */
@@ -51,21 +59,58 @@ function secretMatches(provided: string, expected: string): boolean {
   return timingSafeEqual(providedBuffer, expectedBuffer);
 }
 
-/** Verify Ghost's legacy X-Ghost-Signature header. */
+/** How far out of date a Ghost signature may be before it is treated as a replay. */
+const GHOST_SIGNATURE_TOLERANCE_MS = 5 * 60 * 1000;
+
+/**
+ * Verify Ghost's X-Ghost-Signature header.
+ *
+ * Ghost signs `${rawBody}${ts}` with no separator, where `ts` is `Date.now()`
+ * in milliseconds, and emits a single header:
+ *
+ *   X-Ghost-Signature: sha256=<lowercase hex>, t=<ms>
+ *
+ * There is no companion timestamp header on this path. Ghost's subscriber
+ * webhook sets only Content-Length, Content-Type, Content-Version and this
+ * one, so `t=` is the sole source of truth - requiring a second header
+ * rejects every real webhook with a 401. `headerTimestamp` is therefore
+ * cross-checked only when something actually sends it.
+ *
+ * Do not confuse this with Ghost's internal `signed-webhook` helper, which
+ * uses a different scheme entirely (`${timestamp}:${body}`, base64, plus an
+ * X-Ghost-Request-Timestamp header). That path is for Ghost-to-host calls
+ * such as email verification, never for user-configured webhooks.
+ *
+ * `body` must be the raw request text. Re-serializing a parsed object can
+ * reorder keys or change spacing, which breaks the digest.
+ *
+ * @see https://github.com/TryGhost/Ghost - services/webhooks/webhook-trigger.js
+ */
 function verifyGhostSignature(
   signature: string,
-  timestamp: string,
+  headerTimestamp: string | null,
   body: string,
   secret: string
 ): boolean {
   const match = signature.match(/^sha256=([a-f0-9]+),\s*t=(\d+)$/i);
-  if (!match || match[2] !== timestamp) return false;
+  if (!match) return false;
+
+  const [, digest, timestamp] = match;
+
+  // Only a mismatch is disqualifying; absence is the normal Ghost case.
+  if (headerTimestamp && headerTimestamp !== timestamp) return false;
+
+  // The timestamp is signed, so it cannot be edited without breaking the
+  // digest - bounding it is what stops a captured payload being replayed.
+  if (Math.abs(Date.now() - Number(timestamp)) > GHOST_SIGNATURE_TOLERANCE_MS) {
+    return false;
+  }
 
   const expected = createHmac('sha256', secret)
     .update(`${body}${timestamp}`)
     .digest('hex');
 
-  return secretMatches(match[1].toLowerCase(), expected);
+  return secretMatches(digest.toLowerCase(), expected);
 }
 
 /** Work out which namespaced tags a payload should invalidate. */
@@ -84,6 +129,12 @@ function resolveTags(body: WebhookBody): string[] {
     );
 
     return [postTags.all, ...new Set(slugs.map(postTags.bySlug))];
+  }
+
+  // Ghost: any tag.* event. Tags back the series list, so the whole
+  // collection is refetched rather than one entry.
+  if (body.tag) {
+    return [postTags.all];
   }
 
   // Hygraph: model name decides the namespace.
@@ -139,10 +190,10 @@ export async function POST(req: Request) {
 
   const sharedSecret = env.HYGRAPH_WEBHOOK_SECRET ?? env.WEBHOOK_SECRET;
   const validGhostSignature =
-    Boolean(ghostSecret && ghostSignature && ghostTimestamp) &&
+    Boolean(ghostSecret && ghostSignature) &&
     verifyGhostSignature(
       ghostSignature ?? '',
-      ghostTimestamp ?? '',
+      ghostTimestamp,
       rawBody,
       ghostSecret ?? ''
     );
