@@ -13,7 +13,7 @@ conversational dev voice using the pronoun **"saya"**.
 
 ## Article Lifecycle Workflow
 
-Every article follows a strict 6-stage production pipeline:
+Every article follows a strict 8-stage production pipeline:
 
 ```text
 1. Riset             Investigasi topik, source code, repo tools, issue tracker, benchmark
@@ -27,7 +27,15 @@ Every article follows a strict 6-stage production pipeline:
 5. Generate Artifacts  Generate diagram/bagan/grafis visual (menggantikan ASCII art)
       |
 6. Review Vision     Audit visual asset terhadap design token dan kontras layar
+      |
+7. Linking           Pasang internal + external link pada anchor yang wajar
+      |
+8. SEO & Metadata    Feature image, meta title/description, og/twitter, tags
 ```
+
+**Artikel belum selesai sampai tahap 8.** Tahap 7 dan 8 gampang terlupa karena
+artikelnya sudah "kelihatan jadi" di editor, padahal tanpa keduanya artikel itu
+tidak akan ditemukan orang dan tidak muncul di filter series mana pun.
 
 ## Signature Writing Style
 
@@ -90,7 +98,77 @@ Every article follows a strict 6-stage production pipeline:
 10. **Catatan dan Batasan:** Daftar limitasi dan peringatan operasional.
 11. **Penutup (+ GIF):** Refleksi, takeaways, dan referensi resmi.
 
-## Ghost Admin API Workflow
+## Tahap 5: Generate Artifacts
+
+Diagram tidak digambar tangan dan tidak diambil dari template. Agent membaca
+blok ASCII (atau prosa di sekitarnya kalau tidak ada ASCII), memahami alurnya,
+lalu menulis spec diagram sebagai data, dan renderer-nya yang menggambar.
+
+Alurnya:
+
+1. Baca blok ASCII / prosa pada bagian yang perlu divisualkan.
+2. Terjemahkan jadi spec: daftar kolom, chip per kolom, satu aksen, caption.
+3. Simpan di `.claude/skills/article-graphics/diagrams/<slug>.mjs`.
+4. Render dan lihat hasilnya sebelum upload.
+5. Upload dan swap ke post (codeblock ASCII diganti jadi image card).
+
+Selengkapnya ada di skill `article-graphics`. Aturan visualnya dipegang skill
+itu, jadi jangan menulis ulang gaya diagram di sini.
+
+## Tahap 7: Linking
+
+Link dipasang setelah artikel selesai, bukan sambil menulis, supaya anchor-nya
+jatuh di kata yang memang wajar dan tidak dipaksakan.
+
+- **Internal:** tunjuk ke artikel sendiri **hanya kalau topiknya benar-benar
+  nyambung**. Satu link yang relevan lebih baik daripada lima yang dipaksakan -
+  link yang dipaksakan terbaca sebagai SEO spam dan menurunkan kepercayaan.
+- **External:** tunjuk ke sumber primer (dokumentasi resmi, spec, repo,
+  MDN), bukan ke blog orang lain yang mengutip sumber itu.
+- Anchor-nya kata yang sudah ada di kalimat. Jangan menyisipkan kalimat baru
+  hanya demi menaruh link.
+- **Verifikasi semua URL balik 200 sebelum dipasang.** Link mati lebih buruk
+  daripada tidak ada link.
+- Ghost menambahkan `?ref=` ke setiap link kalau outbound link tagging aktif.
+  Untuk link ke domain sendiri itu salah attribution; sudah dibersihkan di
+  `lib/sanitize-ghost.ts`, tapi lebih baik dimatikan dari Ghost admin.
+
+## Tahap 8: SEO dan Metadata
+
+Ini bagian yang paling sering bolong. Artikel tanpa tag tidak muncul di filter
+series mana pun, dan tanpa feature image tampil kosong waktu di-share.
+
+| Field                         | Isi                                        | Kenapa penting                              |
+| :---------------------------- | :----------------------------------------- | :------------------------------------------ |
+| `feature_image`               | Generate lewat skill `blog-thumbnail`      | Kartu kosong waktu di-share                 |
+| `feature_image_alt`           | Deskripsi singkat                          | Aksesibilitas                               |
+| `meta_title`                  | ~60 char, keyword utama di depan           | Yang tampil di hasil pencarian              |
+| `meta_description`            | ~155 char, keyword + alasan klik           | Yang tampil di bawah judul                  |
+| `og_title` / `og_description` | Boleh sama dengan meta                     | Preview di sosmed                           |
+| `tags`                        | Tag topik dulu, baru `lang-id` / `lang-en` | **Tag pertama jadi `primary_tag` = series** |
+
+Catatan soal judul: `meta_title` tidak harus sama dengan judul artikel. Tulis
+judul artikel untuk pembaca, `meta_title` untuk orang yang sedang mencari.
+Kalau orang mencari "docker compose zero downtime" tapi judulnya "Zero-Downtime
+Deployment Dengan Docker Rollout", masukkan "Docker Compose" ke `meta_title`.
+
+Urutan tag itu penting: site ini membaca `primary_tag` sebagai series, dan
+`lang-id` / `lang-en` yang menentukan language + pasangan terjemahan.
+
+### Checklist sebelum publish
+
+Verifikasi lewat Admin API, jangan hanya lihat editor:
+
+```text
+[ ] tidak ada kata "aku"
+[ ] tidak ada em dash / section sign
+[ ] semua codeblock punya label bahasa
+[ ] gambar semuanya URL CDN Ghost (bukan hotlink pihak ketiga)
+[ ] tabel tersimpan sebagai markdown card, bukan html card
+[ ] semua link balik 200
+[ ] feature_image, meta_title, meta_description terisi
+[ ] tags terisi, tag pertama adalah tag topik
+```
 
 1. **Autentikasi:** Buat short-lived HS256 JWT menggunakan `GHOST_ADMIN_KEY` (`id:secret`).
 2. **Upload Aset GIF:** Selalu upload file media lokal ke `POST /ghost/api/admin/images/upload/` sebelum disematkan di artikel.

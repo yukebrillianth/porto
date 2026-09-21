@@ -1,9 +1,15 @@
 /**
- * The three diagrams for the docker-rollout article, as flat flowcharts.
+ * A generic flowchart renderer.
  *
- * Each one is a single row of chips read left to right. The accent colour
- * marks the one thing the reader should take away - the downtime window, the
- * new container, the drain pause - and nothing else competes with it.
+ * Diagrams are described as data - columns of chips, optional captions, an
+ * optional bracket marking a span, an optional trailing note - and this module
+ * turns that description into HTML. Nothing here knows about any particular
+ * article; per-article specs live in `diagrams/<slug>.mjs`.
+ *
+ * The layout is deliberately one-dimensional: a single row of columns read
+ * left to right, with a column occasionally stacking two chips to show two
+ * things coexisting. Anything that needs more structure than this is a diagram
+ * doing too much, and should be split.
  */
 
 import { tokens, chip, arrow, bracket, canvas } from './flowchart.mjs';
@@ -11,8 +17,10 @@ import { tokens, chip, arrow, bracket, canvas } from './flowchart.mjs';
 const CW = 168;
 const GAP = 46;
 const ROW_Y = 90;
+const CH = 74;
+const STACK = 44;
 
-/** Lays out n chips centred across the 1200px canvas. */
+/** Lays out n columns centred across the 1200px canvas. */
 function row(n) {
   const total = n * CW + (n - 1) * GAP;
   const x0 = (1200 - total) / 2;
@@ -20,106 +28,87 @@ function row(n) {
   return Array.from({ length: n }, (_, i) => x0 + i * (CW + GAP));
 }
 
-/* Diagram 1: why `docker compose up -d` drops requests. */
-export function timelineHtml(theme, grid, fonts) {
-  const t = tokens(theme);
-  const x = row(5);
-  const steps = [
-    ['up -d', 'perintah jalan'],
-    ['stop', 'port tertutup'],
-    ['rm + create', 'tidak ada container'],
-    ['start', 'cold boot'],
-    ['healthy', 'melayani lagi'],
-  ];
+/**
+ * Vertical offsets for the chips in one column. One chip sits on the centre
+ * line; two straddle it. More than two would stop reading as a single step,
+ * so they are spread evenly and left to the caller's judgement.
+ */
+function stackOffsets(count) {
+  if (count === 1) return [0];
+  if (count === 2) return [-STACK, STACK];
 
-  const chips = steps
-    .map(([l, s], i) => chip(x[i], ROW_Y, l, s, t, { accent: i > 0 && i < 4 }))
+  const span = STACK * (count - 1);
+  return Array.from(
+    { length: count },
+    (_, i) => -span + i * ((span * 2) / (count - 1))
+  );
+}
+
+function text(x, y, value, fill, size, weight) {
+  return `
+    <text x="${x}" y="${y}" fill="${fill}"
+          font-family="Gilroy,sans-serif" font-size="${size}"
+          font-weight="${weight}" text-anchor="middle"
+          dominant-baseline="central">${value}</text>`;
+}
+
+/**
+ * Renders one diagram from its spec.
+ *
+ * @param {object} spec
+ * @param {string} spec.title      Heading above the diagram.
+ * @param {object[]} spec.columns  `{ chips: [{label, sub, accent, dim}], caption }`
+ * @param {object} [spec.span]     `{ from, to, label }` column indices, inclusive.
+ * @param {string} [spec.note]     A line of prose under the flow.
+ */
+export function flowHtml(spec, theme, grid, fonts) {
+  const t = tokens(theme);
+  const columns = spec.columns ?? [];
+  const x = row(columns.length);
+
+  const chips = columns
+    .flatMap((col, i) => {
+      const offsets = stackOffsets(col.chips.length);
+
+      return col.chips.map((c, j) =>
+        chip(x[i], ROW_Y + offsets[j], c.label, c.sub, t, {
+          accent: Boolean(c.accent),
+          dim: Boolean(c.dim),
+        })
+      );
+    })
     .join('');
 
   const wires = x
     .slice(0, -1)
-    .map((xi) => arrow(xi + CW, xi + CW + GAP, ROW_Y + 37, t))
+    .map((xi) => arrow(xi + CW, xi + CW + GAP, ROW_Y + CH / 2, t))
     .join('');
 
-  const span = bracket(
-    x[1],
-    x[3] + CW,
-    ROW_Y + 96,
-    'downtime 5-20 detik, request masuk kena 502',
-    t
-  );
-
-  return canvas(
-    chips + wires + span,
-    'Kenapa docker compose up -d bikin downtime',
-    t,
-    grid,
-    fonts
-  );
-}
-
-/* Diagram 2: the three states docker-rollout moves through. */
-export function transitionHtml(theme, grid, fonts) {
-  const t = tokens(theme);
-  const x = row(3);
-  const labels = ['sebelum', 'saat rollout', 'sesudah'];
-
-  const chips = [
-    chip(x[0], ROW_Y, 'web-1', 'versi lama', t),
-    chip(x[1], ROW_Y - 44, 'web-1', 'masih melayani', t, { dim: true }),
-    chip(x[1], ROW_Y + 44, 'web-2', 'sudah healthy', t, { accent: true }),
-    chip(x[2], ROW_Y, 'web-2', 'versi baru', t, { accent: true }),
-  ].join('');
-
-  const wires =
-    arrow(x[0] + CW, x[1], ROW_Y + 37, t) +
-    arrow(x[1] + CW, x[2], ROW_Y + 37, t);
-
-  const caps = labels
-    .map(
-      (l, i) => `<text x="${x[i] + CW / 2}" y="${ROW_Y + 176}" fill="${t.faint}"
-        font-family="Gilroy,sans-serif" font-size="16" font-weight="600"
-        text-anchor="middle" dominant-baseline="central">${l}</text>`
+  const captions = columns
+    .map((col, i) =>
+      col.caption
+        ? text(x[i] + CW / 2, ROW_Y + 176, col.caption, t.faint, 16, 600)
+        : ''
     )
     .join('');
 
-  return canvas(
-    chips + wires + caps,
-    'Tiga tahap transisi docker-rollout',
-    t,
-    grid,
-    fonts
-  );
-}
+  const span = spec.span
+    ? bracket(
+        x[spec.span.from],
+        x[spec.span.to] + CW,
+        ROW_Y + CH + 22,
+        spec.span.label,
+        t
+      )
+    : '';
 
-/* Diagram 3: how the pre-stop hook drains in-flight requests. */
-export function drainingHtml(theme, grid, fonts) {
-  const t = tokens(theme);
-  const x = row(4);
-  const steps = [
-    ['touch drain', 'pre-stop hook'],
-    ['unhealthy', 'healthcheck gagal'],
-    ['dicoret', 'proxy berhenti kirim'],
-    ['sleep 10', 'upload diselesaikan'],
-  ];
-
-  const chips = steps
-    .map(([l, s], i) => chip(x[i], ROW_Y, l, s, t, { accent: i === 3 }))
-    .join('');
-
-  const wires = x
-    .slice(0, -1)
-    .map((xi) => arrow(xi + CW, xi + CW + GAP, ROW_Y + 37, t))
-    .join('');
-
-  const tail = `<text x="600" y="${ROW_Y + 150}" fill="${t.muted}"
-      font-family="Gilroy,sans-serif" font-size="18" font-weight="400"
-      text-anchor="middle" dominant-baseline="central">container lama baru
-      dimatikan setelah request yang lagi jalan selesai</text>`;
+  const note = spec.note
+    ? text(600, ROW_Y + CH + 76, spec.note, t.muted, 18, 400)
+    : '';
 
   return canvas(
-    chips + wires + tail,
-    'Connection draining lewat pre-stop hook',
+    chips + wires + captions + span + note,
+    spec.title,
     t,
     grid,
     fonts
