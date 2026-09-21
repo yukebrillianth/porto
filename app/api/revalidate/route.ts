@@ -124,7 +124,12 @@ export async function POST(req: Request) {
   const headerList = await headers();
   const ghostSignature = headerList.get('x-ghost-signature');
   const ghostTimestamp = headerList.get('x-ghost-request-timestamp');
-  const ghostSecret = env.GHOST_WEBHOOK_SECRET;
+  // Ghost's webhook uses its own signature header. Fall back to the shared
+  // secret so existing deployments work before GHOST_WEBHOOK_SECRET is added.
+  const ghostSecret =
+    env.GHOST_WEBHOOK_SECRET ??
+    env.HYGRAPH_WEBHOOK_SECRET ??
+    env.WEBHOOK_SECRET;
   const rawBody = await req.text();
   const provided =
     headerList.get('x-webhook-secret') ??
