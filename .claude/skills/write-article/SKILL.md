@@ -5,42 +5,66 @@ description: Write in-depth technical blog articles for Ghost CMS using the sign
 
 # Write Technical Blog Article
 
-Write high-quality technical blog articles for Yuke's personal engineering blog,
-blending **Endy Muhardin's narrative problem solving** with **OpenStick README's
-meticulous, checkpoint-driven tutorial structure**.
+Write high-impact, in-depth ("daging"), and engaging technical blog articles for
+Yuke's personal engineering blog. The signature style blends **Endy Muhardin's
+narrative problem solving & real-world survey** with **OpenStick README's meticulous,
+checkpoint-driven tutorial architecture**, delivered in an authentic, witty, and
+casual tech-community voice.
 
 ## Signature Writing Style
 
-Articles combine two distinct technical writing traditions:
+### 1. Voice, Tone, and Personality ("Santai, Gaul, tapi Daging")
 
-### 1. The Endy Muhardin Opening (Narrative & Survey)
+- **Dev Community / Tech Twitter vibe:** Use authentic Indonesian developer slang
+  and natural conversational language (e.g., "wkwkwk", "jir", "bjir", "ngab",
+  "sat-set", "overkill kuadrat", "jebakan batman").
+- **Expressive with emojis:** Use contextual emojis at emotional beats (`😅`, `😭`,
+  `💀`, `🤣`, `🔥`, `🎉`).
+- **Relatable self-deprecation & real stakes:** Ground the narrative with real
+  project constraints without sugarcoating (e.g., "solo dev, deadline mepet, mana
+  bayarannya kecil wkwkwk cuma 2jt...").
+- **Giphy / Meme cards:** Embed 2-3 well-timed GIFs at key emotional moments
+  (e.g., panic during a 502 error, chaos of overengineering, relief when deploy succeeds):
+  ```html
+  <figure class="kg-card kg-image-card">
+    <img
+      src="https://media.giphy.com/media/<id>/giphy.gif"
+      alt="Description"
+      class="kg-image"
+      loading="lazy"
+    />
+    <figcaption>Lucu, relatable caption wkwkwk</figcaption>
+  </figure>
+  ```
+- **"Daging" first:** Never sacrifice technical rigor for humor. Every command,
+  config parameter, architecture diagram, and edge case must be 100% accurate,
+  thorough, and production-tested.
 
-- **Lead directly with a real-world story:** Start with a grounded project context
-  (a specific project, role, scale, budget, client/event constraint). No generic
-  introductions like "In today's fast-paced world...".
-- **The relatable crisis:** Describe the exact moment something broke or became
-  painful (e.g., participants submitting registration files right before a tight
-  deadline when a deploy triggers a 502 Bad Gateway).
-- **Practical honesty:** Acknowledge real constraints freely (e.g., "for a 2 million
-  IDR campus side project, running Kubernetes is operational suicide").
-- **Survey the landscape before choosing:** Before introducing the solution, explore
-  and evaluate 3-4 existing approaches (e.g., Blue-Green, Swarm/K8s, Kamal/Dokku,
-  CLI plugins) with their real-world trade-offs.
+### 2. The Endy Muhardin Opening (Narrative & Survey)
+
+- **Punchy opening story:** Start immediately with the real project context and the
+  exact moment of crisis (e.g., participants submitting files right before deadline
+  when deploy drops connections). Keep it punchy and engaging.
+- **Why the old way fails:** Break down the technical root cause (e.g., recreate vs
+  replace, cold boot time, incoming vs in-flight request failures).
+- **Survey the landscape before choosing:** Before introducing the chosen solution,
+  evaluate 3-4 existing alternatives (e.g., Blue-Green manual, Docker Swarm/K8s,
+  Kamal/Dokku, CLI plugins) with honest real-world trade-offs.
 - **Summary comparison table:** Feature a clean markdown table comparing methods by
   setup complexity, resource overhead, proxy requirements, and ideal use cases.
 
-### 2. The OpenStick README Architecture (Tutorial & Checkpoints)
+### 3. The OpenStick README Architecture (Tutorial & Checkpoints)
 
 - **ASCII diagrams:** Illustrate concepts and state transitions with standard ASCII
   characters (`+`, `-`, `|`, `-->`, `==>`). Never use exotic Unicode box-drawing
   glyphs that might misalign across different fonts.
 - **Explicit prerequisites:** Bulleted list of assumptions, required tools, and
-  architectural constraints.
+  architectural constraints (e.g., dynamic proxy required, no hardcoded ports/names).
 - **Structured warning and note callouts:**
   - `> **Catatan:**` for normal quirks, expected behavior, or container numbering.
   - `> **Peringatan:**` for destructive actions, hardware risks, or prerequisites.
-- **Numbered installation and setup steps:** Break implementation into bite-sized,
-  logically grouped subsections (e.g., 1. Proxy, 2. Compose config, 3. Healthcheck, 4. First deploy).
+- **Numbered setup steps with before/after blocks:** Clear, incremental progression
+  with before/after code blocks.
 - **Mandatory checkpoints:** Every step must include a verification check:
   _"Cek apakah sudah berhasil: jalankan `...`. Jika muncul `...`, jangan lanjut!"_
 - **Visual proof of success:** Always provide a command that demonstrates the fix
@@ -58,13 +82,11 @@ Articles combine two distinct technical writing traditions:
 - **Voice:** Indonesian (`lang-id`) or English (`lang-en`). For Indonesian, use
   "aku" for the author, "kamu" for the reader, and "kita" when walking through
   steps together.
-- **Tone:** Technical, authentic, confident, approachable, slightly witty, but
-  never arrogant. Avoid buzzwords and hype.
 - **Code snippets:** Always declare syntax languages (`bash`, `yaml`, `text`, `javascript`, etc.).
 
 ## Standard Article Outline
 
-1. **Opening Story (3-5 paragraphs):** Project context, problem, why `docker compose up -d` breaks.
+1. **Opening Story (3-5 punchy paragraphs + Giphy):** Project context, panic moment, why it matters.
 2. **Kenapa [Cara Lama] Bermasalah:** Deep dive into mechanics, cold start, ASCII timeline.
 3. **Berbagai Metode Alternatif:** Survey of 3-4 options + comparison table.
 4. **Kenalan dengan [Solusi]:** Core concept, 3-step mechanics, ASCII diagram.
@@ -79,7 +101,7 @@ Articles combine two distinct technical writing traditions:
    handling in-flight requests.
 9. **Script Deploy Lengkap:** Production bash script + database migration guidance.
 10. **Catatan dan Batasan:** Honest list of caveats and operational limits.
-11. **Penutup:** Reflection, key takeaways, and references.
+11. **Penutup (+ Giphy):** Reflection, key takeaways, and references.
 
 ## Ghost Admin API Workflow
 
