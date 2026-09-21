@@ -42,3 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated thumbnails - covers live on Ghost, never in the repo
+/thumbnails/
+
+# claude code scratch worktrees
+/.claude/worktrees/
