@@ -59,7 +59,9 @@ first and look at the files - a diagram that is wrong is faster to catch by eye
 than by reading the code.
 
 `--upload` needs `GHOST_ADMIN_KEY` in the environment or in `.env`; it is never
-committed. `GHOST_URL` comes from `.env` too.
+committed. `GHOST_URL` comes from `.env` too, and includes the subdirectory
+Ghost is mounted under, so the script appends `/ghost/api/...` to it rather
+than assuming the API sits at the domain root.
 
 ## Replacing ASCII in a post
 

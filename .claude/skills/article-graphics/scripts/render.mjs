@@ -91,9 +91,12 @@ function getGhostCredentials() {
       'GHOST_ADMIN_KEY is not set (env or .env) - needed to upload.'
     );
   }
-  const ghostUrl = urlMatch
-    ? urlMatch[1].trim().replace(/\/+$/, '')
-    : 'https://blog.yukebrillianth.my.id';
+  const ghostUrl = (process.env.GHOST_URL || (urlMatch ? urlMatch[1] : ''))
+    .trim()
+    .replace(/\/+$/, '');
+  if (!ghostUrl) {
+    throw new Error('GHOST_URL is not set (env or .env) - needed to upload.');
+  }
 
   return { ghostUrl, adminKey };
 }
