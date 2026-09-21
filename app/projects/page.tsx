@@ -1,5 +1,6 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 
+import { siteConfig } from '@/constants';
 import { collectionPageJsonLd, generateMetadata } from '@/lib/seo';
 import { getProjects } from '@/services/projects';
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = generateMetadata({
   title: 'Projects',
   description:
     'Selected work across full-stack applications, distributed systems, and autonomous robotics.',
-  url: 'https://yukebrillianth.my.id/projects',
+  url: `${siteConfig.url}/projects`,
 });
 
 type ProjectsPageProps = {

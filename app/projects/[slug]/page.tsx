@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { siteConfig } from '@/constants';
 import {
   breadcrumbJsonLd,
   generateMetadata as buildMetadata,
@@ -41,7 +42,7 @@ export async function generateMetadata({
     title: project.title,
     description: project.description,
     image: project.coverUrl,
-    url: `https://yukebrillianth.my.id/projects/${project.slug}`,
+    url: `${siteConfig.url}/projects/${project.slug}`,
     type: 'article',
   });
 }
@@ -52,7 +53,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   if (!project) notFound();
 
-  const url = `https://yukebrillianth.my.id/projects/${project.slug}`;
+  const url = `${siteConfig.url}/projects/${project.slug}`;
   const projectSchema = projectJsonLd({
     title: project.title,
     description: project.description,

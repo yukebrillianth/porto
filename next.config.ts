@@ -26,8 +26,9 @@ const nextConfig: NextConfig = {
       ...(ghostHostname
         ? [{ protocol: 'https' as const, hostname: ghostHostname }]
         : []),
-      // Cloudflare R2 - Ghost's public media domain
+      // Cloudflare R2 - Ghost's public media domains
       { protocol: 'https' as const, hostname: 'assets.yukebrillianth.my.id' },
+      { protocol: 'https' as const, hostname: 'cdn.yukebrillianth.com' },
     ],
   },
 

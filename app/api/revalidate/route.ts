@@ -115,7 +115,7 @@ function resolveTags(body: WebhookBody): string[] {
  * -> Custom integration -> Add webhook, pointing at this route.
  *
  * @example
- * // curl -X POST https://yukebrillianth.my.id/api/revalidate \
+ * // curl -X POST https://www.yukebrillianth.com/api/revalidate \
  * //   -H 'X-Webhook-Secret: <secret>' \
  * //   -H 'Content-Type: application/json' \
  * //   -d '{"type":"tag","value":"project:robocon-2025"}'

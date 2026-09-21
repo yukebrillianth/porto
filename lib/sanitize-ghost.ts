@@ -112,7 +112,7 @@ export function sanitizeGhostHtml(html: string): string {
           try {
             const url = new URL(
               attribute.value,
-              'https://yukebrillianth.my.id'
+              'https://www.yukebrillianth.com'
             );
             if (!ALLOWED_PROTOCOLS.has(url.protocol)) {
               element.removeAttribute(attribute.name);

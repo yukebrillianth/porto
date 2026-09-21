@@ -8,7 +8,7 @@ export const siteConfig = {
     process.env.NEXT_PUBLIC_APP_URL &&
     !process.env.NEXT_PUBLIC_APP_URL.includes('localhost')
       ? process.env.NEXT_PUBLIC_APP_URL
-      : 'https://yukebrillianth.my.id',
+      : 'https://www.yukebrillianth.com',
   ogImage: '/og-image.jpg',
   creator: 'Yuke Brilliant Hestiavin',
   locale: 'en_US',
@@ -84,7 +84,7 @@ export const socials = [
 
 export type Social = (typeof socials)[number];
 
-export const email = 'me@yukebrillianth.my.id';
+export const email = 'me@yukebrillianth.com';
 
 /**
  * The tech row in the fun-fact section. These are the six the original site

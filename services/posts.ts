@@ -221,7 +221,7 @@ export async function getPostSlugs(): Promise<string[]> {
  *
  * @example
  * const post = await getPostBySlug('building-a-ros-bridge');
- * post?.canonicalUrl; // 'https://yukebrillianth.my.id/blog/building-a-ros-bridge'
+ * post?.canonicalUrl; // 'https://www.yukebrillianth.com/blog/building-a-ros-bridge'
  */
 export async function getPostBySlug(slug: string): Promise<PostDetail | null> {
   try {
