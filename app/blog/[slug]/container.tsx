@@ -110,7 +110,7 @@ export default function PostContainer({
 
         <GlowOrb className="top-[25%] right-[15%]" />
 
-        <SectionInner className="flex flex-col items-center pb-10 md:pb-16">
+        <SectionInner className="-mt-16 flex flex-col items-center pb-10 md:-mt-20 md:pb-16">
           <div className="w-full max-w-4xl">
             <nav aria-label="Breadcrumb" className="mb-6 text-left">
               <ol className="flex flex-wrap items-center gap-2 text-[13px] font-medium text-white/50">
@@ -143,7 +143,7 @@ export default function PostContainer({
               {post.series ? (
                 <Link
                   href={`/blog?series=${post.series.slug}`}
-                  className="text-primary rounded-full border border-white/10 bg-white/5 px-3.5 py-1 text-[12px] font-semibold transition hover:border-white/25 hover:bg-white/10"
+                  className="rounded-full border border-white/10 px-3.5 py-1 text-[12px] font-semibold text-white transition hover:border-white/25 hover:bg-white/10"
                 >
                   {post.series.name}
                 </Link>

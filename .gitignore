@@ -44,4 +44,10 @@ yarn-error.log*
 next-env.d.ts
 
 # generated article diagrams (rendered from .claude/skills/article-graphics)
-.claude/artifacts/
+/.claude/artifacts/
+
+# generated thumbnails - covers live on Ghost, never in the repo
+/thumbnails/
+
+# claude code scratch worktrees
+/.claude/worktrees/

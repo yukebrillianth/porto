@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Scratch worktrees carry their own build output, which is generated
+    // code that would otherwise be linted as if it were source.
+    '.claude/worktrees/**',
   ]),
   {
     plugins: {
