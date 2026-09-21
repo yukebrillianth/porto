@@ -37,8 +37,9 @@ Every article follows a strict 6-stage production pipeline:
 - **Dev Community vibe:** Gunakan bahasa gaul teknis yang natural dan ceplas-ceplos (e.g., "wkwkwk", "jir", "bjir", "ngab", "sat-set", "overkill kuadrat", "jebakan batman").
 - **Ekspresif dengan emoji:** Sertakan emoji kontekstual pada momen emosional (`😅`, `😭`, `💀`, `🤣`, `🔥`, `🎉`).
 - **Relatable self-deprecation & real stakes:** Ceritakan kendala nyata tanpa jaim (e.g., "solo dev, deadline mepet, mana bayarannya kecil wkwkwk cuma 2jt...").
-- **Meme / GIF handling:**
-  - GIF **wajib di-upload langsung ke CDN Ghost** via endpoint `/ghost/api/admin/images/upload/` agar tidak terkena proteksi hotlink pihak ketiga ("content not available").
+- **Meme / GIF handling with Giphy MCP:**
+  - Gunakan tool MCP `giphy:search_gifs` untuk mencari GIF yang relevan dan lucu langsung dari percakapan (misal query: `"developer panic"`, `"this is fine"`, `"coding fire"`).
+  - URL yang didapat (`images.original.url`) **wajib di-download dan di-upload langsung ke Ghost CDN** via endpoint `/ghost/api/admin/images/upload/` agar tidak terkena proteksi hotlink pihak ketiga ("content not available").
   - Sematkan 2-3 GIF yang tepat sasaran di momen emosional (panik 502, overengineering K8s, kelegaan deploy sukses).
 - **"Daging" nomor satu:** Jangan pernah korbankan kedalaman teknis demi lelucon. Semua konfigurasi, kode, checkpoint, dan arsitektur harus 100% presisi dan siap pakai di server produksi.
 
