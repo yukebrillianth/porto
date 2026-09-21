@@ -81,9 +81,16 @@ export function bracket(x1, x2, y, label, t) {
           text-anchor="middle" dominant-baseline="central">${esc(label)}</text>`;
 }
 
-/** Wraps a diagram body in the shared canvas: solid bg, grid, title, mark. */
-export function canvas(body, title, t, grid) {
+/**
+ * Wraps a diagram body in the shared canvas: solid bg, grid, title, mark.
+ *
+ * `fonts` is the @font-face block with Gilroy inlined as base64. Without it
+ * Chromium silently falls back to a system sans and the diagram stops matching
+ * the rest of the site, so the caller always passes it.
+ */
+export function canvas(body, title, t, grid, fonts = '') {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+    ${fonts}
     *{margin:0;padding:0;box-sizing:border-box}
     body{width:${W}px;height:${H}px;background:${t.bg};position:relative;overflow:hidden;
       font-family:Gilroy,sans-serif}

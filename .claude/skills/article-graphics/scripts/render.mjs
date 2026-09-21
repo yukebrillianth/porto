@@ -56,38 +56,12 @@ function fontFaceCss() {
     .join('\n');
 }
 
-function gridDataUri(isLight) {
+/* One grid asset for both themes; the light variant inverts it in CSS. */
+function gridDataUri() {
   const p = join(PUBLIC_DIR, 'backgrounds', 'grid-dark.svg');
   if (!existsSync(p)) return '';
   const data = base64(p);
   return `data:image/svg+xml;base64,${data}`;
-}
-
-/* ==========================================================================
-   Design Tokens
-   ========================================================================== */
-
-function getThemeTokens(theme = 'dark') {
-  const isLight = theme === 'light';
-
-  return {
-    isLight,
-    bg: isLight ? '#F8F9FA' : '#121212',
-    cardBg: isLight ? '#FFFFFF' : '#191919',
-    cardBorder: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)',
-    cardShadow: isLight
-      ? '0 8px 30px rgba(0,0,0,0.06)'
-      : '0 16px 40px rgba(0,0,0,0.5)',
-    textPrimary: isLight ? '#121212' : '#FFFFFF',
-    textMuted: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)',
-    textFaint: isLight ? 'rgba(0,0,0,0.38)' : 'rgba(255,255,255,0.38)',
-    primary: '#FF9800',
-    gridOpacity: isLight ? '0.035' : '0.04',
-    gridInvert: isLight ? 'filter: invert(1);' : '',
-    rowBg: isLight ? '#F1F3F5' : '#222222',
-    rowBorder: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
-    hairline: isLight ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.12)',
-  };
 }
 
 /* ==========================================================================
@@ -193,23 +167,26 @@ async function main() {
     mkdirSync(outDir, { recursive: true });
   }
 
+  const grid = gridDataUri();
+  const fonts = fontFaceCss();
+
   const tasks = [
     {
       name: 'downtime-timeline',
-      html: timelineHtml(theme, gridDataUri(theme === 'light')),
+      html: timelineHtml(theme, grid, fonts),
       caption:
         'Anatomi downtime pada perintah docker compose up -d (t1 sampai t4 memicu 502)',
       alt: 'Anatomi Downtime docker compose up -d',
     },
     {
       name: 'rollout-transition',
-      html: transitionHtml(theme, gridDataUri(theme === 'light')),
+      html: transitionHtml(theme, grid, fonts),
       caption: 'Transisi 3 tahap zero-downtime deployment pada docker-rollout',
       alt: 'Transisi 3 Tahap docker-rollout',
     },
     {
       name: 'draining-flow',
-      html: drainingHtml(theme, gridDataUri(theme === 'light')),
+      html: drainingHtml(theme, grid, fonts),
       caption:
         'Alur kerja connection draining menggunakan penanda /tmp/drain dan pre-stop hook',
       alt: 'Alur Connection Draining docker-rollout',

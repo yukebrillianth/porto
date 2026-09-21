@@ -21,7 +21,7 @@ function row(n) {
 }
 
 /* Diagram 1: why `docker compose up -d` drops requests. */
-export function timelineHtml(theme, grid) {
+export function timelineHtml(theme, grid, fonts) {
   const t = tokens(theme);
   const x = row(5);
   const steps = [
@@ -53,12 +53,13 @@ export function timelineHtml(theme, grid) {
     chips + wires + span,
     'Kenapa docker compose up -d bikin downtime',
     t,
-    grid
+    grid,
+    fonts
   );
 }
 
 /* Diagram 2: the three states docker-rollout moves through. */
-export function transitionHtml(theme, grid) {
+export function transitionHtml(theme, grid, fonts) {
   const t = tokens(theme);
   const x = row(3);
   const labels = ['sebelum', 'saat rollout', 'sesudah'];
@@ -86,12 +87,13 @@ export function transitionHtml(theme, grid) {
     chips + wires + caps,
     'Tiga tahap transisi docker-rollout',
     t,
-    grid
+    grid,
+    fonts
   );
 }
 
 /* Diagram 3: how the pre-stop hook drains in-flight requests. */
-export function drainingHtml(theme, grid) {
+export function drainingHtml(theme, grid, fonts) {
   const t = tokens(theme);
   const x = row(4);
   const steps = [
@@ -119,6 +121,7 @@ export function drainingHtml(theme, grid) {
     chips + wires + tail,
     'Connection draining lewat pre-stop hook',
     t,
-    grid
+    grid,
+    fonts
   );
 }

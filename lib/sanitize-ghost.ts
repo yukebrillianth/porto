@@ -2,6 +2,8 @@ import 'server-only';
 
 import { parseHTML } from 'linkedom';
 
+import { siteConfig } from '@/constants';
+
 const ALLOWED_TAGS = new Set([
   'a',
   'article',
@@ -42,6 +44,7 @@ const ALLOWED_TAGS = new Set([
 ]);
 
 const ALLOWED_PROTOCOLS = new Set(['http:', 'https:', 'mailto:', 'tel:']);
+const SITE_ORIGIN = siteConfig.url;
 const ALLOWED_ATTRIBUTES = new Set([
   'allow',
   'allowfullscreen',
@@ -110,10 +113,7 @@ export function sanitizeGhostHtml(html: string): string {
 
         if (name === 'href' || name === 'src' || name === 'poster') {
           try {
-            const url = new URL(
-              attribute.value,
-              'https://www.yukebrillianth.com'
-            );
+            const url = new URL(attribute.value, SITE_ORIGIN);
             if (!ALLOWED_PROTOCOLS.has(url.protocol)) {
               element.removeAttribute(attribute.name);
             }
@@ -126,10 +126,50 @@ export function sanitizeGhostHtml(html: string): string {
       if (element.getAttribute('target') === '_blank') {
         element.setAttribute('rel', 'noopener noreferrer');
       }
+
+      if (tag === 'a') normalizeLink(element);
       cleanNode(element);
     }
   }
 
   cleanNode(document.body);
   return document.body.innerHTML;
+}
+
+/**
+ * Ghost rewrites every link with `?ref=<ghost-host>` when outbound link tagging
+ * is on. These posts render on our own domain, so that parameter both misreports
+ * the referrer and turns internal links into off-site-looking URLs. Strip it,
+ * rewrite links back to our origin as relative paths so they stay same-origin,
+ * and mark genuinely external links.
+ */
+function normalizeLink(anchor: Element) {
+  const href = anchor.getAttribute('href');
+  if (!href) return;
+
+  let url: URL;
+  try {
+    url = new URL(href, SITE_ORIGIN);
+  } catch {
+    return;
+  }
+
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+  url.searchParams.delete('ref');
+  const query = url.searchParams.toString();
+
+  if (url.origin === SITE_ORIGIN) {
+    anchor.setAttribute(
+      'href',
+      `${url.pathname}${query ? `?${query}` : ''}${url.hash}`
+    );
+    anchor.removeAttribute('target');
+    anchor.removeAttribute('rel');
+    return;
+  }
+
+  anchor.setAttribute('href', url.toString());
+  anchor.setAttribute('target', '_blank');
+  anchor.setAttribute('rel', 'noopener noreferrer');
 }

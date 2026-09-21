@@ -507,6 +507,41 @@
     color: rgb(0 0 0 / 0.55);
   }
 
+  /*
+   * Ghost width cards. The editor emits these when a card is set to wide or
+   * full; without them a "wide" image is still capped by the 720px reading
+   * column and looks identical to a regular one. Diagrams are 1200px wide and
+   * need the extra room, so they break out of the measure while staying inside
+   * the viewport. Centring via left/translate rather than negative margins
+   * keeps the breakout correct at every width, so it degrades to the plain
+   * column on mobile instead of overflowing it.
+   */
+  .prose-content :is(.kg-width-wide, .kg-width-full) {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  @media (width >= 48rem) {
+    .prose-content :is(.kg-width-wide, .kg-width-full) {
+      position: relative;
+      left: 50%;
+      translate: -50%;
+      max-width: none;
+    }
+
+    .prose-content .kg-width-wide {
+      width: min(calc(100% + 13rem), calc(100vw - 6rem));
+    }
+
+    .prose-content .kg-width-full {
+      width: calc(100vw - 3.5rem);
+    }
+  }
+
+  .prose-content :is(.kg-width-wide, .kg-width-full) img {
+    width: 100%;
+  }
+
   /* Ghost Lexical Cards */
   .prose-content .kg-card {
     margin-top: 2.5rem;
