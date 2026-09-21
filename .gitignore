@@ -43,6 +43,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# generated article diagrams (rendered from .claude/skills/article-graphics)
+/.claude/artifacts/
+
 # generated thumbnails - covers live on Ghost, never in the repo
 /thumbnails/
 

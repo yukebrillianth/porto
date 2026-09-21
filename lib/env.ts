@@ -18,6 +18,10 @@ export const env = createEnv({
     // Key: Ghost Admin -> Settings -> Integrations -> Custom integration.
     GHOST_URL: z.string().url().optional(),
     GHOST_CONTENT_KEY: z.string().optional(),
+    // Origin that serves Ghost's own static files (Koenig card CSS/JS).
+    // Separate from GHOST_URL because the admin/API origin does not serve
+    // them. Falls back to GHOST_URL when unset.
+    GHOST_ASSET_URL: z.string().url().optional(),
 
     // Shared secret for the /api/revalidate webhook.
     WEBHOOK_SECRET: z.string().optional(),
@@ -39,6 +43,7 @@ export const env = createEnv({
     HYGRAPH_WEBHOOK_SECRET: process.env.HYGRAPH_WEBHOOK_SECRET,
     GHOST_URL: process.env.GHOST_URL,
     GHOST_CONTENT_KEY: process.env.GHOST_CONTENT_KEY,
+    GHOST_ASSET_URL: process.env.GHOST_ASSET_URL,
     WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
     GHOST_WEBHOOK_SECRET: process.env.GHOST_WEBHOOK_SECRET,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,

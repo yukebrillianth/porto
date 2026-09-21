@@ -9,11 +9,18 @@ import { env } from '@/lib/env';
  */
 const GHOST_API_VERSION = 'v6.0';
 
-/** Public Ghost asset paths used by Koenig cards on the headless frontend. */
+/**
+ * Public Ghost asset paths used by Koenig cards on the headless frontend.
+ *
+ * These live on `GHOST_ASSET_URL` rather than `GHOST_URL`: the admin/API
+ * origin is headless and does not serve Ghost's static files, so the asset
+ * host is configured separately in the reverse proxy.
+ */
 export function ghostPublicAsset(path: 'cards.min.css' | 'cards.min.js') {
-  if (!env.GHOST_URL) return null;
+  const base = env.GHOST_ASSET_URL ?? env.GHOST_URL;
+  if (!base) return null;
 
-  return `${env.GHOST_URL.replace(/\/+$/, '')}/public/${path}`;
+  return `${base.replace(/\/+$/, '')}/public/${path}`;
 }
 
 /** Query params for a Content API browse or read request. */
