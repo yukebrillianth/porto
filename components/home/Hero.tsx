@@ -200,7 +200,7 @@ export function Hero() {
             text="Yuke Brilliant Hestiavin."
             className="text-gradient-pan"
           />{' '}
-          <br className="hidden md:inline" />I build software across{' '}
+          <br className="inline" />I build software across{' '}
           <br className="hidden md:inline" />
           the stack &amp; for robots.
         </motion.h1>
