@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { siteConfig } from '@/constants';
 import {
+  breadcrumbJsonLd,
   collectionPageJsonLd,
   generateMetadata as buildMetadata,
   websiteJsonLd,
@@ -47,12 +48,20 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       'Notes on robotics, distributed systems, networking and full-stack engineering.',
     path: '/blog',
   });
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Blog' },
+  ]);
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collection) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       <script
         type="application/ld+json"

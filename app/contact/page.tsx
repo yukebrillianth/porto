@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 import { siteConfig } from '@/constants';
-import { generateMetadata as buildMetadata } from '@/lib/seo';
+import { breadcrumbJsonLd, generateMetadata as buildMetadata } from '@/lib/seo';
 
 import ContactContainer from './container';
 
@@ -13,5 +13,18 @@ export const metadata: Metadata = buildMetadata({
 });
 
 export default function ContactPage() {
-  return <ContactContainer />;
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Contact' },
+  ]);
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
+      <ContactContainer />
+    </>
+  );
 }

@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 
 import { siteConfig } from '@/constants';
-import { collectionPageJsonLd, generateMetadata } from '@/lib/seo';
+import {
+  breadcrumbJsonLd,
+  collectionPageJsonLd,
+  generateMetadata,
+} from '@/lib/seo';
 import { getProjects } from '@/services/projects';
 
 import ProjectsContainer from './container';
@@ -57,12 +61,20 @@ export default async function ProjectsPage({
       'Selected work across full-stack applications, distributed systems, and autonomous robotics.',
     path: '/projects',
   });
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Projects' },
+  ]);
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collection) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       <ProjectsContainer
         projects={visible}

@@ -6,6 +6,7 @@ import { ghostPublicAsset } from '@/lib/ghost';
 import {
   articleJsonLd,
   breadcrumbJsonLd,
+  countWords,
   generateMetadata as buildMetadata,
 } from '@/lib/seo';
 import { getPostBySlug, getPostSlugs } from '@/services/posts';
@@ -81,6 +82,9 @@ export default async function PostPage({ params }: PostPageProps) {
       url: `${siteConfig.url}/#about`,
     })),
     language: post.language,
+    section: post.series?.name,
+    readTimeMinutes: post.readTimeMinutes,
+    wordCount: countWords(post.contentHtml),
   });
   const breadcrumbs = breadcrumbJsonLd([
     { name: 'Home', path: '/' },
