@@ -1,5 +1,7 @@
 import { Metadata, Viewport } from 'next';
 
+import { Analytics } from '@vercel/analytics/next';
+
 import { gilroy, ptSerif } from '@/app/fonts';
 import { defaultMetadata } from '@/lib/seo';
 import { ToastProvider } from '@/providers/ToastProvider';
@@ -41,6 +43,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <ToastProvider />
+        <Analytics />
       </body>
     </html>
   );
