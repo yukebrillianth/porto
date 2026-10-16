@@ -138,14 +138,15 @@ jatuh di kata yang memang wajar dan tidak dipaksakan.
 Ini bagian yang paling sering bolong. Artikel tanpa tag tidak muncul di filter
 series mana pun, dan tanpa feature image tampil kosong waktu di-share.
 
-| Field                         | Isi                                        | Kenapa penting                              |
-| :---------------------------- | :----------------------------------------- | :------------------------------------------ |
-| `feature_image`               | Generate lewat skill `blog-thumbnail`      | Kartu kosong waktu di-share                 |
-| `feature_image_alt`           | Deskripsi singkat                          | Aksesibilitas                               |
-| `meta_title`                  | ~60 char, keyword utama di depan           | Yang tampil di hasil pencarian              |
-| `meta_description`            | ~155 char, keyword + alasan klik           | Yang tampil di bawah judul                  |
-| `og_title` / `og_description` | Boleh sama dengan meta                     | Preview di sosmed                           |
-| `tags`                        | Tag topik dulu, baru `lang-id` / `lang-en` | **Tag pertama jadi `primary_tag` = series** |
+| Field                         | Isi                                        | Kenapa penting                               |
+| :---------------------------- | :----------------------------------------- | :------------------------------------------- |
+| `feature_image`               | Generate lewat skill `blog-thumbnail`      | Kartu kosong waktu di-share                  |
+| `feature_image_alt`           | Deskripsi singkat                          | Aksesibilitas                                |
+| `meta_title`                  | ~60 char, keyword utama di depan           | Yang tampil di hasil pencarian               |
+| `meta_description`            | ~155 char, keyword + alasan klik           | Yang tampil di bawah judul                   |
+| `og_title` / `og_description` | Boleh sama dengan meta                     | Preview di sosmed                            |
+| `tags`                        | Tag topik dulu, baru `lang-id` / `lang-en` | **Tag pertama jadi `primary_tag` = series**  |
+| `#translation-<kunci>`        | Tag internal yang sama di post ID dan EN   | Memasangkan terjemahan tanpa bergantung slug |
 
 Catatan soal judul: `meta_title` tidak harus sama dengan judul artikel. Tulis
 judul artikel untuk pembaca, `meta_title` untuk orang yang sedang mencari.
@@ -153,7 +154,14 @@ Kalau orang mencari "docker compose zero downtime" tapi judulnya "Zero-Downtime
 Deployment Dengan Docker Rollout", masukkan "Docker Compose" ke `meta_title`.
 
 Urutan tag itu penting: site ini membaca `primary_tag` sebagai series, dan
-`lang-id` / `lang-en` yang menentukan language + pasangan terjemahan.
+`lang-id` / `lang-en` yang menentukan bahasa.
+
+**Pasangan terjemahan** ditentukan oleh tag internal yang sama di kedua post,
+misalnya `#translation-udp-telemetry` (di Ghost jadi slug
+`hash-translation-udp-telemetry`). Dengan begitu slug versi Inggris boleh
+berbahasa Inggris. Tag internal tidak pernah tampil ke pembaca dan tidak
+menggantikan `primary_tag`. Artikel lama yang memakai konvensi slug `<slug>-en`
+tetap berpasangan lewat fallback, jadi tidak perlu dimigrasi.
 
 ### Checklist sebelum publish
 
@@ -168,6 +176,7 @@ Verifikasi lewat Admin API, jangan hanya lihat editor:
 [ ] semua link balik 200
 [ ] feature_image, meta_title, meta_description terisi
 [ ] tags terisi, tag pertama adalah tag topik
+[ ] ada tag internal #translation-<kunci> yang sama di post ID dan EN
 ```
 
 1. **Autentikasi:** Buat short-lived HS256 JWT menggunakan `GHOST_ADMIN_KEY` (`id:secret`).

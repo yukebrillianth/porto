@@ -70,7 +70,7 @@ Two independent CMS backends, each a thin client in `lib/`:
 - **Ghost** (self-hosted) → blog posts, via the REST Content API at
   `{GHOST_URL}/ghost/api/content/`, keyed with `?key={GHOST_CONTENT_KEY}`. Not GraphQL, so
   it does not use `gqlFetch` - see `lib/ghost.ts`. Ghost has no "series" primitive, so
-  **tags** back the `PostSeries` type. Both env vars are server-side only and optional: an
+  **tags** back the `PostSeries` type. Translations are paired by a shared internal tag (`#translation-<key>`, slug `hash-translation-<key>`) on the Indonesian and English post, so each keeps a slug in its own language; the older `<slug>-en` convention still works as a fallback. Both env vars are server-side only and optional: an
   unconfigured or unreachable Ghost degrades to an empty feed rather than failing the build.
 
 **Caching: ISR + cache tags, to stay well inside free-tier quotas.** Use

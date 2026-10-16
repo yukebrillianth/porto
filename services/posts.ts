@@ -72,6 +72,30 @@ function toLanguage(post: GhostPost): PostLanguage {
   return 'id';
 }
 
+/**
+ * Internal tag that links the translations of one article, for example
+ * `#translation-udp-telemetry` (slug `hash-translation-udp-telemetry`). Put the
+ * same tag on the Indonesian and the English post and each keeps a slug in its
+ * own language. Ghost never shows internal tags to readers.
+ */
+const TRANSLATION_TAG = /^hash-translation-/;
+
+function translationTag(post: GhostPost): string | null {
+  return post.tags?.find((tag) => TRANSLATION_TAG.test(tag.slug))?.slug ?? null;
+}
+
+/**
+ * The key two posts share when they are translations of each other: the
+ * internal tag when there is one, otherwise the older convention where the
+ * English slug is the Indonesian slug plus `-en`.
+ */
+function pairingKey(post: GhostPost): string {
+  const explicit = translationTag(post);
+  if (explicit) return explicit;
+
+  return toLanguage(post) === 'en' ? post.slug.replace(/-en$/, '') : post.slug;
+}
+
 async function resolveTranslations(
   post: GhostPost
 ): Promise<PostTranslation[]> {
@@ -79,6 +103,45 @@ async function resolveTranslations(
   const translations: PostTranslation[] = [
     { language: currentLang, slug: post.slug, title: post.title },
   ];
+
+  const addPartner = (partner: GhostPost) => {
+    const language = toLanguage(partner);
+    if (partner.slug === post.slug) return;
+    if (translations.some((translation) => translation.language === language)) {
+      return;
+    }
+
+    translations.push({
+      language,
+      slug: partner.slug,
+      title: partner.title,
+    });
+  };
+
+  const pairTag = translationTag(post);
+
+  if (pairTag) {
+    try {
+      const partners = await ghostFetch<GhostPostsResponse>(
+        'posts',
+        {
+          filter: `tag:${pairTag}`,
+          fields: 'id,slug,title',
+          include: 'tags',
+          limit: 10,
+        },
+        // Any post event busts `post`, so a partner being published or edited
+        // refreshes the toggle on this page too.
+        { tags: [postTags.all] }
+      );
+
+      partners?.posts?.forEach(addPartner);
+    } catch {
+      // Partner lookup failed, the page still renders without the toggle.
+    }
+
+    return translations;
+  }
 
   const candidateSlug =
     currentLang === 'en' ? post.slug.replace(/-en$/, '') : `${post.slug}-en`;
@@ -92,16 +155,7 @@ async function resolveTranslations(
       );
 
       const partner = partnerData?.posts?.[0];
-      if (partner) {
-        const partnerLang = toLanguage(partner);
-        if (partnerLang !== currentLang) {
-          translations.push({
-            language: partnerLang,
-            slug: partner.slug,
-            title: partner.title,
-          });
-        }
-      }
+      if (partner) addPartner(partner);
     } catch {
       // Partner translation does not exist yet.
     }
@@ -130,28 +184,31 @@ function toPostSummary(post: GhostPost): PostSummary {
 /**
  * Deduplicate translated pairs so that a post with both Indonesian and English
  * versions appears once in the main list, with its available languages recorded.
+ * The Indonesian post leads when both are present, and the card keeps the
+ * position of the lead post in the feed.
  */
 function deduplicatePosts(posts: GhostPost[]): PostSummary[] {
-  const allSlugs = new Set(posts.map((post) => post.slug));
+  const groups = new Map<string, GhostPost[]>();
+
+  for (const post of posts) {
+    const key = pairingKey(post);
+    groups.set(key, [...(groups.get(key) ?? []), post]);
+  }
+
   const summaries: PostSummary[] = [];
 
   for (const post of posts) {
-    if (post.slug.endsWith('-en')) {
-      const baseSlug = post.slug.replace(/-en$/, '');
-      if (allSlugs.has(baseSlug)) {
-        // Skip separate English card when the base post is in the feed.
-        continue;
-      }
-      const summary = toPostSummary(post);
-      summary.languages = ['en'];
-      summaries.push(summary);
-      continue;
-    }
+    const members = groups.get(pairingKey(post)) ?? [post];
+    const lead = members.find((m) => toLanguage(m) === 'id') ?? members[0];
 
-    const summary = toPostSummary(post);
-    const hasEnglish = allSlugs.has(`${post.slug}-en`);
-    summary.languages = hasEnglish ? ['id', 'en'] : ['id'];
-    summaries.push(summary);
+    // Every other member of the group is folded into the lead's card.
+    if (lead !== post) continue;
+
+    const languages = (['id', 'en'] as const).filter((language) =>
+      members.some((member) => toLanguage(member) === language)
+    );
+
+    summaries.push({ ...toPostSummary(post), languages });
   }
 
   return summaries;
